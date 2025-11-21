@@ -43,7 +43,9 @@ public class Pioche {
         return cartes.isEmpty();
     }
     
- // Tirer deux cartes de la pioche
+ /**
+  * Tirer deux cartes de la pioche
+  */
     public List<Carte> piocherDeuxCartes() {
         List<Carte> tirage = new ArrayList<>();
         for (int i = 0; i < 2 && !cartes.isEmpty(); i++) {
