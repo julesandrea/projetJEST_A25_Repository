@@ -44,11 +44,26 @@ public class Carte {
 	    this.valeur = valeur;
 	    this.suite = null; // Joker n'a pas de couleur
 	}
+	
+	
+	@Override
+    public String toString() {
+        if (valeur == ValeurCarte.JOKER) {
+            return "Joker";
+        } else {
+            return valeur + " de " + suite;
+        }
+    }
 
 	
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		Carte carte1 = new Carte(ValeurCarte.AS,SuiteCarte.PIQUE);
+		Carte carte2 = new Carte(ValeurCarte.JOKER);
+		
+		System.out.println(carte1.getValeur() + " de " + carte1.getSuite());
+		System.out.println(carte2.getValeur() + " de " + carte2.getSuite());
 
 	}
 
