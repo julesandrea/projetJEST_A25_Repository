@@ -7,16 +7,22 @@ public class Partie {
     private List<Joueur> joueurs;
     private Pioche pioche;
     private List<Carte> trophees;
+    private Variante variante;
     private int tour = 1;
 
     public Partie() {
         joueurs = new ArrayList<>();
         pioche = new Pioche();
         trophees = new ArrayList<>();
+        variante = new VarianteClassique(); // variante par défaut
     }
 
     public void ajouterJoueur(Joueur j) {
         joueurs.add(j);
+    }
+
+    public void setVariante(Variante v) {
+        this.variante = v;
     }
 
     /* ============================================================
@@ -25,8 +31,9 @@ public class Partie {
     public void demarrer() {
 
         System.out.println("=== Nouvelle partie de JEST ===");
+        System.out.println("Variante utilisée : " + variante.getNom());
 
-        // Deux cartes deviennent des trophées
+        // Pioche des trophées
         trophees = pioche.piocherTrophees();
         System.out.println("\nTrophées : " + trophees);
 
@@ -54,31 +61,30 @@ public class Partie {
         Map<Joueur, Carte[]> cartesDistribuees = new HashMap<>();
 
         if (tour == 1) {
-            // ========== TOUR 1 : pioche directe ==========
+            // TOUR 1 : distribution directe depuis la pioche
             for (Joueur j : joueurs) {
                 cartesDistribuees.put(j,
                         new Carte[]{pioche.piocher(), pioche.piocher()});
             }
         } else {
-            // ========== TOURS SUIVANTS ==========
+            // TOURS SUIVANTS : récupérer les cartes restantes
             List<Carte> tas = new ArrayList<>();
 
-            // 1) récupérer les cartes restantes dans les offres
             for (Joueur j : joueurs) {
                 Offre o = j.getOffre();
                 if (o.getFaceVisible() != null) tas.add(o.getFaceVisible());
                 if (o.getFaceCachee() != null) tas.add(o.getFaceCachee());
             }
 
-            // 2) ajouter une carte de pioche par joueur
+            // Ajouter autant de cartes que de joueurs
             for (int i = 0; i < joueurs.size(); i++) {
                 if (!pioche.estVide()) tas.add(pioche.piocher());
             }
 
-            // 3) mélanger
+            // Mélanger
             Collections.shuffle(tas);
 
-            // 4) distribuer 2 cartes par joueur
+            // Redistribuer
             Iterator<Carte> it = tas.iterator();
             for (Joueur j : joueurs) {
                 Carte c1 = it.hasNext() ? it.next() : null;
@@ -91,25 +97,24 @@ public class Partie {
     }
 
     /* ============================================================
-                           UN TOUR COMPLET
+                            UN TOUR COMPLET
        ============================================================ */
 
     private void jouerUnTour() {
 
         Map<Joueur, Carte[]> cartesDistribuees = distribuerCartes();
 
-        /* --- PHASE OFFRES --- */
+        /* --- Phase OFFRE --- */
         for (Joueur j : joueurs) {
             Carte[] cs = cartesDistribuees.get(j);
             if (cs[0] == null || cs[1] == null)
-                throw new RuntimeException("ERREUR distribution : carte null.");
-
+                throw new RuntimeException("Erreur distribution : carte null.");
             j.faireOffre(cs[0], cs[1]);
         }
 
         afficherOffres();
 
-        /* --- PHASE PRISE --- */
+        /* --- Phase PRISE --- */
         List<Joueur> ordre = determinerOrdrePrise();
         Set<Joueur> dejaJoue = new HashSet<>();
 
@@ -117,26 +122,27 @@ public class Partie {
 
             Joueur actif = trouverProchainJoueur(ordre, dejaJoue);
 
-            // Liste des adversaires dont l'offre est encore complète
+            // Liste des adversaires valides
             List<Joueur> valides = new ArrayList<>();
             for (Joueur j : joueurs) {
-                if (j != actif && j.getOffre().estComplete())
+                if (j != actif && j.getOffre().estComplete()) {
                     valides.add(j);
+                }
             }
 
             Offre cibleOffre;
 
             if (valides.isEmpty()) {
-                // Cas spécial : seul sa propre offre reste complète
-                System.out.println(actif.getNom() + " doit prendre dans SA propre offre.");
+                // Cas spécial : seul sa propre offre reste valide
+                System.out.println(actif.getNom() + " doit prendre dans sa propre offre.");
                 cibleOffre = actif.getOffre();
             } else {
-                // Le joueur CHOISIT un adversaire
+                // Le joueur CHOISIT un adversaire valide
                 Joueur cible = actif.choisirJoueurCible(valides);
                 cibleOffre = cible.getOffre();
             }
 
-            // Maintenant il choisit visible / cachée
+            // Choix visible/cachée
             Carte prise = actif.choisirCarte(cibleOffre);
             actif.ajouterAuJest(prise);
 
@@ -147,7 +153,7 @@ public class Partie {
     }
 
     /* ============================================================
-                           ORDRE DE PRISE
+                         ORDRE DE PRISE
        ============================================================ */
 
     private List<Joueur> determinerOrdrePrise() {
@@ -163,7 +169,6 @@ public class Partie {
 
             if (v1 != v2) return Integer.compare(v2, v1);
 
-            // égalité → comparer la force des couleurs
             return Integer.compare(c2.getSuite().getForce(), c1.getSuite().getForce());
         });
 
@@ -179,7 +184,7 @@ public class Partie {
     }
 
     /* ============================================================
-                           AFFICHAGE DES OFFRES
+                          AFFICHAGE OFFRES
        ============================================================ */
 
     private void afficherOffres() {
@@ -190,7 +195,7 @@ public class Partie {
     }
 
     /* ============================================================
-                    FIN DU JEU : ATTRIBUTION DES CARTES
+                        FIN DE PARTIE : CARTES RESTANTES
        ============================================================ */
 
     private void donnerDernieresCartes() {
@@ -198,30 +203,26 @@ public class Partie {
 
         for (Joueur j : joueurs) {
             Offre o = j.getOffre();
-
-            if (o.getFaceVisible() != null)
-                j.ajouterAuJest(o.prendreVisible());
-
-            if (o.getFaceCachee() != null)
-                j.ajouterAuJest(o.prendreCachee());
+            if (o.getFaceVisible() != null) j.ajouterAuJest(o.prendreVisible());
+            if (o.getFaceCachee() != null) j.ajouterAuJest(o.prendreCachee());
         }
     }
 
     /* ============================================================
-                           AFFICHAGE DES SCORES
+                             SCORES
        ============================================================ */
 
     private void afficherScores() {
         System.out.println("\n=== Scores finaux ===");
 
         for (Joueur j : joueurs) {
-            int score = j.getJest().calculerScore();
-            System.out.println(j.getNom() + " → " + score + " points | Jest : " + j.getJest());
+            int score = j.getJest().calculerScore(variante); // variante activée
+            System.out.println(j.getNom() + " -> " + score + " points | Jest : " + j.getJest());
         }
     }
 
     /* ============================================================
-                           ANNONCE DU VAINQUEUR
+                           VAINQUEUR
        ============================================================ */
 
     private void afficherVainqueur() {
@@ -230,14 +231,14 @@ public class Partie {
         int max = Integer.MIN_VALUE;
 
         for (Joueur j : joueurs) {
-            int score = j.getJest().calculerScore();
+            int score = j.getJest().calculerScore(variante);
             if (score > max) {
                 max = score;
                 gagnant = j;
             }
         }
 
-        System.out.println("\n🏆 Le vainqueur est : " +
-                gagnant.getNom() + " avec " + max + " points !");
+        System.out.println("\nLe vainqueur est : " +
+                gagnant.getNom() + " avec " + max + " points.");
     }
 }

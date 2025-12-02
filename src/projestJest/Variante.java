@@ -1,35 +1,10 @@
 package projestJest;
 
-public class Variante {
-	
-	    private String nom;
+public interface Variante {
 
-	    private String description;
+    /** Appliqué juste avant le calcul du score d’un Jest */
+    void appliquerReglesDeScore(CompteurScore compteur);
 
-	public void appliquerReglesSpecifiques() {
-	}
-
-	public String getNom() {
-		return nom;
-	}
-
-	public void setNom(String nom) {
-		this.nom = nom;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
-	
-	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
+    /** Nom affiché dans le menu */
+    String getNom();
 }

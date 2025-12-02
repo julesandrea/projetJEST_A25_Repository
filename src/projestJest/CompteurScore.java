@@ -5,58 +5,76 @@ import java.util.List;
 
 public class CompteurScore implements VisiteurScore {
 
+    // Cartes du Jest
     private List<CarteSuite> cartesSuite = new ArrayList<>();
-    private boolean jokerPresent = false;
-    private CarteJoker joker = null;
     private List<CarteTrophee> trophees = new ArrayList<>();
+    private CarteJoker joker = null;
 
     private int scoreTemp = 0;
 
-    /** Visite une carte de couleur (Pique, Trèfle, Carreau, Coeur) */
+    // Options activées par les variantes
+    private boolean asToujours5 = false;
+    private boolean coeursJamaisNegatifs = false;
+
+    /* ============================================================
+                          MÉTHODES DE CONFIGURATION
+       ============================================================ */
+
+    public void setAsToujours5(boolean b) {
+        this.asToujours5 = b;
+    }
+
+    public void setCoeursJamaisNegatifs(boolean b) {
+        this.coeursJamaisNegatifs = b;
+    }
+
+    /* ============================================================
+                             VISITEURS
+       ============================================================ */
+
     @Override
     public void visiter(CarteSuite carte) {
         cartesSuite.add(carte);
     }
 
-    /** Visite le Joker */
     @Override
     public void visiter(CarteJoker carte) {
-        jokerPresent = true;
-        joker = carte;
+        this.joker = carte;
     }
 
-    /** Visite un trophée */
     @Override
     public void visiter(CarteTrophee carte) {
         trophees.add(carte);
     }
 
-    /**
-     * Retourne le score final total du Jest,
-     * après traitement DE TOUTES les règles Jest.
-     */
+    /* ============================================================
+                       CALCUL GLOBAL DU SCORE
+       ============================================================ */
+
     public int getScoreTotal() {
+
         scoreTemp = 0;
 
         appliquerReglesCouleurs();
         appliquerReglesAs();
         appliquerReglesJoker();
-        appliquerReglesPaires();
+        appliquerReglesPairesNoires();
         appliquerReglesTrophees();
 
         return scoreTemp;
     }
 
-    /** ----------------------
-     * RÈGLE 1 : Couleurs
-     * ---------------------- */
+    /* ============================================================
+                       RÈGLE 1 : COULEURS
+       ============================================================ */
+
     private void appliquerReglesCouleurs() {
+
         for (CarteSuite c : cartesSuite) {
-
             int valeur = c.getValeur().getFaceValue();
-            SuiteCarte couleur = c.getSuite();
+            SuiteCarte s = c.getSuite();
 
-            switch (couleur) {
+            switch (s) {
                 case PIQUE:
                 case TREFLE:
                     scoreTemp += valeur;
@@ -67,43 +85,58 @@ public class CompteurScore implements VisiteurScore {
                     break;
 
                 case COEUR:
-                    // les coeurs dépendent du Joker → traités plus tard
+                    // le cas des cœurs dépendra plus tard du Joker
                     break;
             }
         }
     }
 
-    /** ----------------------
-     * RÈGLE 2 : As
-     * ---------------------- */
+    /* ============================================================
+                       RÈGLE 2 : AS
+       ============================================================ */
+
     private void appliquerReglesAs() {
 
-        // On compte combien d'As il y a par couleur
-        for (SuiteCarte couleur : SuiteCarte.values()) {
+        for (SuiteCarte s : SuiteCarte.values()) {
 
-            int count = 0;
-            CarteSuite as = null;
+            List<CarteSuite> memesCouleurs = new ArrayList<>();
 
             for (CarteSuite c : cartesSuite) {
-                if (c.getSuite() == couleur && c.getValeur().estAs()) {
-                    count++;
+                if (c.getSuite() == s)
+                    memesCouleurs.add(c);
+            }
+
+            // Cherche un As dans cette couleur
+            CarteSuite as = null;
+            for (CarteSuite c : memesCouleurs) {
+                if (c.getValeur().estAs()) {
                     as = c;
+                    break;
                 }
             }
 
-            // S'il y a exactement 1 As dans cette couleur → il vaut 5 
-            if (count == 1) {
-                scoreTemp += (5 - 1);  
-                // On ajoute +4 parce qu'on avait déjà ajouté +1 dans les couleurs (ou 0 si coeur)
+            if (as == null) continue;
+
+            // Variante : As valent toujours 5
+            if (asToujours5) {
+                scoreTemp += (5 - as.getValeur().getFaceValue());
+                continue;
+            }
+
+            // Règle classique : As vaut 5 seulement s'il est seul dans sa couleur
+            if (memesCouleurs.size() == 1) {
+                scoreTemp += (5 - 1); // on ajoute +4
             }
         }
     }
 
-    /** ----------------------
-     * RÈGLE 3 : Joker + Cœurs
-     * ---------------------- */
+    /* ============================================================
+                       RÈGLE 3 : JOKER + COEURS
+       ============================================================ */
+
     private void appliquerReglesJoker() {
 
+        // Compter les cœurs
         int nbCoeurs = 0;
         int sommeCoeurs = 0;
 
@@ -114,30 +147,45 @@ public class CompteurScore implements VisiteurScore {
             }
         }
 
-        if (!jokerPresent) {
-            // Pas de Joker → les coeurs ne valent rien
+        // Pas de Joker → règle simple
+        if (joker == null) {
+
+            if (coeursJamaisNegatifs) {
+                scoreTemp += sommeCoeurs; // tous positifs
+            }
+            // sinon : cœurs valent 0 → règle classique
             return;
         }
 
         // Joker présent
         if (nbCoeurs == 0) {
-            // Joker seul → +4
+            // Joker seul : +4
             scoreTemp += 4;
+            return;
         }
-        else if (nbCoeurs < 4) {
-            // Joker + 1 à 3 coeurs → les coeurs sont NEGATIFS
+
+        if (coeursJamaisNegatifs) {
+            // Variante : les cœurs ne descendent jamais en négatif
+            scoreTemp += sommeCoeurs;
+            return;
+        }
+
+        // RÈGLES CLASSIQUES
+        if (nbCoeurs < 4) {
+            // Joker + 1 à 3 cœurs : cœurs négatifs
             scoreTemp -= sommeCoeurs;
-        }
-        else {
-            // Joker + 4 coeurs → coeurs positifs
+        } else {
+            // Joker + 4 cœurs : cœurs positifs
             scoreTemp += sommeCoeurs;
         }
     }
 
-    /** ----------------------
-     * RÈGLE 4 : Paires noires (Spade + Club de même valeur)
-     * ---------------------- */
-    private void appliquerReglesPaires() {
+    /* ============================================================
+                       RÈGLE 4 : PAIRES NOIRES
+       ============================================================ */
+
+    private void appliquerReglesPairesNoires() {
+
         for (ValeurCarte v : new ValeurCarte[]{ValeurCarte.AS, ValeurCarte.DEUX, ValeurCarte.TROIS, ValeurCarte.QUATRE}) {
 
             boolean aPique = false;
@@ -151,19 +199,17 @@ public class CompteurScore implements VisiteurScore {
             }
 
             if (aPique && aTrefle) {
-                scoreTemp += 2; // bonus paire noire
+                scoreTemp += 2;
             }
         }
     }
 
-    /** ----------------------
-     * RÈGLE 5 : Trophées
-     * (simple pour l'instant, extensible ensuite)
-     * ---------------------- */
+    /* ============================================================
+                       RÈGLE 5 : TROPHÉES
+       ============================================================ */
+
     private void appliquerReglesTrophees() {
-        for (CarteTrophee t : trophees) {
-            // À compléter selon les variantes
-            // Ex : "Meilleur 3" → +X points
-        }
+        // Implémentation personnalisable par variante si besoin
+        // Actuellement, aucun trophée n'a encore de règle codée
     }
 }

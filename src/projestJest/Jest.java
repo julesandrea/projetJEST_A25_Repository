@@ -18,26 +18,40 @@ public class Jest {
         cartes.add(c);
     }
 
-    /** Renvoie une copie des cartes pour éviter les modifications externes */
+    /** Renvoie une copie des cartes pour éviter toute modification externe */
     public List<Carte> getCartes() {
         return new ArrayList<>(cartes);
     }
 
-    /** Nombre de cartes */
+    /** Nombre de cartes du Jest */
     public int size() {
         return cartes.size();
     }
 
-    /** 
-     * Calcule le score total du Jest en appliquant le Visitor Score.
-     * Le Visitor encapsule TOUTES les règles du jeu Jest.
+    /**
+     * Calcule le score total du Jest selon la variante choisie.
+     * 
+     * @param variante la variante de jeu appliquée au calcul du score
+     * @return score total du Jest
      */
-    public int calculerScore() {
-        CompteurScore visiteur = new CompteurScore();
+    public int calculerScore(Variante variante) {
+
+        if (variante == null)
+            throw new IllegalArgumentException("Une variante doit être fournie pour calculer le score.");
+
+        // 1. Création du visiteur de score
+        CompteurScore compteur = new CompteurScore();
+
+        // 2. La variante configure les règles du compteur
+        variante.appliquerReglesDeScore(compteur);
+
+        // 3. Chaque carte "accepte" le visiteur
         for (Carte c : cartes) {
-            c.accepter(visiteur);
+            c.accepter(compteur);
         }
-        return visiteur.getScoreTotal();
+
+        // 4. Score final
+        return compteur.getScoreTotal();
     }
 
     @Override
