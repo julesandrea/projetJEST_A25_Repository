@@ -16,3 +16,4 @@ public class CarteSuite extends Carte {
         visiteur.visiter(this);
     }
 }
+
