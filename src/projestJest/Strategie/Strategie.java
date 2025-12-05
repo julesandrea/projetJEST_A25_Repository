@@ -1,5 +1,7 @@
-package projestJest;
+package projestJest.Strategie;
 
+import projestJest.*;
+import projestJest.Joueur.*;
 import java.util.List;
 
 public interface Strategie {

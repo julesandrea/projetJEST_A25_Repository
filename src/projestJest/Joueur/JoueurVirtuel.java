@@ -1,5 +1,8 @@
-package projestJest;
+package projestJest.Joueur;
 
+import projestJest.*;
+import projestJest.Carte.*;
+import projestJest.Strategie.*;
 import java.util.List;
 
 public class JoueurVirtuel extends Joueur {

@@ -1,5 +1,7 @@
-package projestJest;
+package projestJest.Joueur;
 
+import projestJest.*;
+import projestJest.Carte.*;
 import java.util.List;
 import java.util.Scanner;
 

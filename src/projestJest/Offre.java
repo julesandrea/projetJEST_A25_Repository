@@ -1,5 +1,7 @@
 package projestJest;
 
+import projestJest.Carte.*;
+
 public class Offre {
 
     private Carte faceVisible;

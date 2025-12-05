@@ -1,5 +1,10 @@
 package projestJest;
 
+import projestJest.Carte.*;
+import projestJest.Joueur.*;
+import projestJest.Strategie.*;
+import projestJest.Variante.*;
+
 import java.util.Scanner;
 
 public class Main {

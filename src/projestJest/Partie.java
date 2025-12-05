@@ -1,5 +1,8 @@
 package projestJest;
 
+import projestJest.Carte.*;
+import projestJest.Joueur.*;
+import projestJest.Variante.*;
 import java.util.*;
 
 public class Partie {

@@ -1,4 +1,6 @@
-package projestJest;
+package projestJest.Variante;
+
+import projestJest.*;
 
 public class VarianteAsToujours5 implements Variante {
 

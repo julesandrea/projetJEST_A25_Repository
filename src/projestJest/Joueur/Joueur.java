@@ -1,5 +1,8 @@
-package projestJest;
+package projestJest.Joueur;
 
+import projestJest.*;
+import projestJest.Carte.*;
+import projestJest.Strategie.*;
 import java.util.List;
 
 public abstract class Joueur {

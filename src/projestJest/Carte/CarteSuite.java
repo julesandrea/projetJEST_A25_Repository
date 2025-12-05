@@ -1,4 +1,6 @@
-package projestJest;
+package projestJest.Carte;
+
+import projestJest.*;
 
 public class CarteSuite extends Carte {
 

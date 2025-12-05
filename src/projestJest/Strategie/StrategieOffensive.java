@@ -1,5 +1,8 @@
-package projestJest;
+package projestJest.Strategie;
 
+import projestJest.*;
+import projestJest.Carte.*;
+import projestJest.Joueur.*;
 import java.util.List;
 import java.util.Random;
 
