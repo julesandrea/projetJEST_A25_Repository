@@ -7,18 +7,44 @@ import projestJest.Variante.*;
 
 import java.util.Scanner;
 
+/**
+ * Classe principale de l'application. 
+ * Point d'entrée du programme. 
+ */
 public class Main {
 
+    /**
+     * Point d'entrée du programme.
+     * @param args Arguments de la ligne de commande (non utilisés).
+     */
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
-        Partie partie = new Partie();
-
         System.out.println("=== JEST - MODE CONSOLE ===");
+        
+        System.out.println("1 - Nouvelle Partie");
+        System.out.println("2 - Charger une partie");
+        System.out.print("Votre choix : ");
+        int choixMenu = sc.nextInt();
+        sc.nextLine(); 
 
-        /* ================================
-                 CHOIX DE LA VARIANTE
-           ================================ */
+        Partie partie = null;
+
+        if (choixMenu == 2) {
+            partie = Partie.chargerPartie();
+            if (partie == null) {
+                System.out.println("Échec du chargement. Démarrage d'une nouvelle partie.");
+            } else {
+                System.out.println("Partie chargée avec succès !");
+                partie.demarrer();
+                return;
+            }
+        }
+        
+        if (partie == null) {
+            partie = new Partie();
+        }
+
         System.out.println("Choisissez une variante :");
         System.out.println("1 - Règles classiques");
         System.out.println("2 - As valent toujours 5");
@@ -38,36 +64,57 @@ public class Main {
                 partie.setVariante(new VarianteClassique());
                 break;
         }
+        
+        System.out.print("\nInclure les cartes d'extension ? (1:Oui 2:Non) : ");
+        int choixExt = 2; 
+        try {
+             choixExt = sc.nextInt();
+        } catch (Exception e) { sc.next(); }
+        
+        if (choixExt == 1) {
+            partie.activerExtensions();
+            System.out.println("Extensions activées !");
+        }
 
-        /* ================================
-                 CHOIX DES JOUEURS
-           ================================ */
-        System.out.println("\nCombien de joueurs humains ? (0-4)");
-        int nbHumains = sc.nextInt();
+        int nbHumains = 0;
+        int nbVirtuels = 0;
+        int nbTotal = 0;
+        
+        do {
+            System.out.println("\nCombien de joueurs humains ? (0-4)");
+            try {
+                String input = sc.next();
+                nbHumains = Integer.parseInt(input);
+            } catch(NumberFormatException e) { nbHumains = -1; }
 
-        System.out.println("Combien de joueurs virtuels ? (0-4)");
-        int nbVirtuels = sc.nextInt();
+            System.out.println("Combien de joueurs virtuels ? (0-4)");
+            try {
+                String input = sc.next();
+                nbVirtuels = Integer.parseInt(input);
+            } catch(NumberFormatException e) { nbVirtuels = -1; }
+            
+            nbTotal = nbHumains + nbVirtuels;
+            
+            if (nbTotal < 3 || nbTotal > 4) {
+                System.out.println("❌ Le jeu se joue uniquement à 3 ou 4 joueurs ! Réessayez.");
+            }
+        } while (nbTotal < 3 || nbTotal > 4);
 
-        sc.nextLine(); // vider le buffer
+        sc.nextLine(); 
 
-        /* --- Création des joueurs humains --- */
         for (int i = 1; i <= nbHumains; i++) {
             System.out.print("Nom du joueur " + i + " : ");
             String nom = sc.nextLine();
             partie.ajouterJoueur(new JoueurHumain(nom));
         }
 
-        /* --- Création des joueurs virtuels --- */
         for (int i = 1; i <= nbVirtuels; i++) {
             String nomBot = "Bot" + i;
-            Strategie strategie = new StrategieAleatoire(); // stratégie par défaut
+            Strategie strategie = new StrategieAleatoire(); 
             partie.ajouterJoueur(new JoueurVirtuel(nomBot, strategie));
             System.out.println("Joueur virtuel ajouté : " + nomBot);
         }
 
-        /* ================================
-                  LANCEMENT DU JEU
-           ================================ */
         System.out.println("\nDémarrage de la partie...\n");
         partie.demarrer();
 

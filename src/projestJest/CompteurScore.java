@@ -135,7 +135,52 @@ public class CompteurScore implements VisiteurScore {
                        RÈGLE 3 : JOKER + COEURS
        ============================================================ */
 
+    private boolean magePresent = false;
+
+    @Override
+    public void visiter(CarteMage carte) {
+        this.magePresent = true;
+        this.scoreTemp += 2; // Bonus direct du Mage
+    }
+
+    @Override
+    public void visiter(CarteExtension carte) {
+        // Logique générique extension (si besoin)
+    }
+
+    /* ============================================================
+                       RÈGLE 1 : COULEURS
+       ============================================================ */
+    
+    // ... (rest of methods)
+
+    /* ============================================================
+                       RÈGLE 3 : JOKER + COEURS
+       ============================================================ */
+
     private void appliquerReglesJoker() {
+
+        // Si le Mage et le Joker sont tous deux présents, l'effet du Joker est annulé
+        if (joker != null && magePresent) {
+             // Joker neutralisé : ne rapporte rien, ne change pas les coeurs
+             // Les coeurs comptent normalement (positifs si option activée, ou rien ?)
+             // Règle standard sans Joker : Coeurs ne valent rien (0) sauf si variante CoeurJamaisNegatifs
+             
+             // Dans le doute, si Joker annulé = Comme si pas de Joker.
+             // Donc on applique la logique "Pas de Joker"
+             
+            int sommeCoeurs = 0;
+            for (CarteSuite c : cartesSuite) {
+                if (c.getSuite() == SuiteCarte.COEUR) {
+                    sommeCoeurs += c.getValeur().getFaceValue();
+                }
+            }
+             
+             if (coeursJamaisNegatifs) {
+                 scoreTemp += sommeCoeurs; 
+             }
+             return; 
+        }
 
         // Compter les cœurs
         int nbCoeurs = 0;
@@ -158,7 +203,7 @@ public class CompteurScore implements VisiteurScore {
             return;
         }
 
-        // Joker présent
+        // Joker présent (et Pas de Mage)
         if (nbCoeurs == 0) {
             // Joker seul : +4
             scoreTemp += 4;
@@ -204,13 +249,36 @@ public class CompteurScore implements VisiteurScore {
             }
         }
     }
-
+    
     /* ============================================================
-                       RÈGLE 5 : TROPHÉES
+                       RÈGLE 5 : TROPHÉES & SPÉCIAL
        ============================================================ */
 
     private void appliquerReglesTrophees() {
-        // Implémentation personnalisable par variante si besoin
-        // Actuellement, aucun trophée n'a encore de règle codée
+        // Cœur Brisant : 
+        // Identifiable par sa valeur SIX (6).
+        
+        boolean coeurBrisantPresent = false;
+        
+        for (CarteSuite c : cartesSuite) {
+            if (c.getValeur() == ValeurCarte.SIX) {
+                coeurBrisantPresent = true;
+                break;
+            }
+        }
+        
+        if (coeurBrisantPresent) {
+            // Vérifier les 4 As
+            int nbAs = 0;
+            for (CarteSuite c : cartesSuite) {
+                if (c.getValeur().estAs()) nbAs++;
+            }
+            
+            if (nbAs < 4) {
+                scoreTemp -= 6;
+            } else {
+                // Si 4 As, annulé
+            }
+        }
     }
 }

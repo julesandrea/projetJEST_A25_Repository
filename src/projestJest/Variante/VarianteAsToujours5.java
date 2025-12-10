@@ -2,6 +2,9 @@ package projestJest.Variante;
 
 import projestJest.*;
 
+/**
+ * Variante où les As valent toujours 5, peu importe s'il y en a d'autres de la même couleur.
+ */
 public class VarianteAsToujours5 implements Variante {
 
     @Override

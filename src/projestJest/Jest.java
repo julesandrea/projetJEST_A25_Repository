@@ -1,36 +1,52 @@
 package projestJest;
 
 import projestJest.Carte.*;
+import projestJest.Variante.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class Jest {
+/**
+ * Représente le "Jest" d'un joueur, c'est-à-dire l'ensemble des cartes collectées
+ * et comptabilisées pour le score final.
+ */
+public class Jest implements Serializable {
 
     private List<Carte> cartes;
 
+    /**
+     * Constructeur d'un Jest vide.
+     */
     public Jest() {
         cartes = new ArrayList<>();
     }
 
-    /** Ajoute une carte au Jest */
+    /** 
+     * Ajoute une carte au Jest. 
+     * @param c La carte à ajouter.
+     */
     public void addCarte(Carte c) {
         if (c == null)
             throw new IllegalArgumentException("Impossible d'ajouter une carte null au Jest.");
         cartes.add(c);
     }
 
-    /** Renvoie une copie des cartes pour éviter toute modification externe */
+    /** 
+     * @return Une copie de la liste des cartes du Jest.
+     */
     public List<Carte> getCartes() {
         return new ArrayList<>(cartes);
     }
 
-    /** Nombre de cartes du Jest */
+    /** 
+     * @return Le nombre de cartes dans le Jest.
+     */
     public int size() {
         return cartes.size();
     }
 
     /**
-     * Calcule le score total du Jest selon la variante choisie.
+     * Calcule le score total du Jest selon la variante choisie en utilisant le pattern Visitor.
      * 
      * @param variante la variante de jeu appliquée au calcul du score
      * @return score total du Jest
@@ -40,18 +56,14 @@ public class Jest {
         if (variante == null)
             throw new IllegalArgumentException("Une variante doit être fournie pour calculer le score.");
 
-        // 1. Création du visiteur de score
         CompteurScore compteur = new CompteurScore();
 
-        // 2. La variante configure les règles du compteur
         variante.appliquerReglesDeScore(compteur);
 
-        // 3. Chaque carte "accepte" le visiteur
         for (Carte c : cartes) {
             c.accepter(compteur);
         }
 
-        // 4. Score final
         return compteur.getScoreTotal();
     }
 

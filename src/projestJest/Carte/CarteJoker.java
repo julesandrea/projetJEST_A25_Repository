@@ -2,8 +2,14 @@ package projestJest.Carte;
 
 import projestJest.*;
 
+/**
+ * Représente la carte Joker.
+ */
 public class CarteJoker extends Carte {
 
+    /**
+     * Constructeur pour le Joker.
+     */
     public CarteJoker() {
         super(ValeurCarte.JOKER, null);
     }

@@ -1,12 +1,22 @@
 package projestJest.Variante;
 
 import projestJest.*;
+import java.io.Serializable;
 
-public interface Variante {
+/**
+ * Interface pour les variantes de règles.
+ * Permet de configurer le compteur de score avant le calcul.
+ */
+public interface Variante extends Serializable {
 
-    /** Appliqué juste avant le calcul du score d’un Jest */
+    /** 
+     * Configure le compteur de score selon la variante.
+     * @param compteur Le visiteur de score à configurer.
+     */
     void appliquerReglesDeScore(CompteurScore compteur);
 
-    /** Nom affiché dans le menu */
+    /** 
+     * @return Le nom de la variante.
+     */
     String getNom();
 }

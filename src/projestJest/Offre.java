@@ -2,13 +2,21 @@ package projestJest;
 
 import projestJest.Carte.*;
 
-public class Offre {
+import java.io.Serializable;
+
+/**
+ * Représente l'offre d'un joueur, composée d'une carte visible et d'une carte cachée.
+ */
+public class Offre implements Serializable {
 
     private Carte faceVisible;
     private Carte faceCachee;
 
     /**
      * Crée une offre à partir d'une carte visible et d'une carte cachée.
+     * @param faceVisible La carte exposée.
+     * @param faceCachee La carte face cachée.
+     * @throws IllegalArgumentException Si l'une des cartes est nulle.
      */
     public Offre(Carte faceVisible, Carte faceCachee) {
         if (faceVisible == null || faceCachee == null) {
@@ -18,24 +26,31 @@ public class Offre {
         this.faceCachee = faceCachee;
     }
 
-    /** Renvoie true si les deux cartes sont encore présentes */
+    /**
+     * @return Vrai si l'offre contient encore ses deux cartes, faux sinon.
+     */
     public boolean estComplete() {
         return faceVisible != null && faceCachee != null;
     }
 
-    /** Renvoie la carte visible (sans la retirer) */
+    /**
+     * @return La carte visible (sans la retirer).
+     */
     public Carte getFaceVisible() {
         return faceVisible;
     }
 
-    /** Renvoie la carte cachée (sans la retirer) — juste pour la logique, pas pour l'affichage */
+    /**
+     * @return La carte cachée (sans la retirer).
+     */
     public Carte getFaceCachee() {
         return faceCachee;
     }
 
     /**
      * Permet de prendre la carte visible.
-     * Retire la carte de l'offre et la renvoie.
+     * @return La carte visible qui est retirée de l'offre.
+     * @throws IllegalStateException Si la carte est déjà prise.
      */
     public Carte prendreVisible() {
         if (faceVisible == null) {
@@ -47,8 +62,9 @@ public class Offre {
     }
 
     /**
-     * Permet à un joueur de prendre la carte cachée SANS pouvoir la regarder avant.
-     * Retire la carte de l'offre et la renvoie.
+     * Permet de prendre la carte cachée.
+     * @return La carte cachée qui est retirée de l'offre.
+     * @throws IllegalStateException Si la carte est déjà prise.
      */
     public Carte prendreCachee() {
         if (faceCachee == null) {
@@ -60,18 +76,18 @@ public class Offre {
     }
 
     /**
-     * Méthode pratique : le joueur choisit visible ou cachée.
-     * @param prendreVisible true = visible ; false = cachée
+     * Prend une carte de l'offre selon le choix (visible ou cachée).
+     * @param prendreVisible true pour prendre la visible, false pour la cachée.
+     * @return La carte prise.
      */
     public Carte prendre(boolean prendreVisible) {
         return prendreVisible ? prendreVisible() : prendreCachee();
     }
 
-    /** Affichage utile pour le mode console */
     @Override
     public String toString() {
         String visible = (faceVisible == null ? "X" : faceVisible.toString());
-        String cachee  = (faceCachee == null ? "X" : "???"); // On ne montre jamais la carte cachée
+        String cachee  = (faceCachee == null ? "X" : "???");
         return "[Visible: " + visible + " | Cachée: " + cachee + "]";
     }
 }
