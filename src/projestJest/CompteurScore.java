@@ -35,23 +35,17 @@ public class CompteurScore implements VisiteurScore {
         this.coeursJamaisNegatifs = b;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void visiter(CarteSuite carte) {
         cartesSuite.add(carte);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void visiter(CarteJoker carte) {
         this.joker = carte;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void visiter(CarteTrophee carte) {
         trophees.add(carte);
     }
@@ -129,17 +123,13 @@ public class CompteurScore implements VisiteurScore {
 
     private boolean magePresent = false;
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void visiter(CarteMage carte) {
         this.magePresent = true;
         this.scoreTemp += 2; 
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void visiter(CarteExtension carte) {
         
     }

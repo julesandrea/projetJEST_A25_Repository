@@ -14,9 +14,7 @@ public class StrategieDefensive implements Strategie {
 
     private Random rand = new Random();
 
-    /**
-     * {@inheritDoc}
-     */
+
     public boolean choisirVisibleOuCachee(Offre offre) {
 
         Carte visible = offre.getFaceVisible();
@@ -43,9 +41,7 @@ public class StrategieDefensive implements Strategie {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public Joueur choisirOffre(List<Joueur> joueursValides) {
 
         Joueur meilleur = null;

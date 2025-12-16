@@ -6,7 +6,7 @@ import projestJest.Strategie.*;
 import java.util.List;
 
 /**
- * Représente un joueur virtuel (IA).
+ * Représente un joueur virtuel.
  * Ses décisions sont déléguées à une stratégie (Pattern Strategy).
  */
 public class JoueurVirtuel extends Joueur {
@@ -30,7 +30,7 @@ public class JoueurVirtuel extends Joueur {
      */
     public void faireOffre(Carte c1, Carte c2, InterfaceUtilisateur vue) {
         this.offre = new Offre(c1, c2);
-        vue.afficherMessage(nom + " (IA) a fait son offre.");
+        vue.afficherMessage(nom + " a fait son offre.");
     }
 
     /**
@@ -43,8 +43,8 @@ public class JoueurVirtuel extends Joueur {
         boolean prendreVisible = strategie.choisirVisibleOuCachee(offre);
         Carte retiree = offre.prendre(prendreVisible);
 
-        vue.afficherMessage(nom + " (IA) a pris : " + retiree);
-        vue.afficherMessage(nom + " (IA) possède maintenant dans son Jest : " + this.jest);
+        vue.afficherMessage(nom + "  a pris : " + retiree);
+        vue.afficherMessage(nom + "  possède maintenant dans son Jest : " + this.jest);
         return retiree;
     }
 
