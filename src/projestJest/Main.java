@@ -118,9 +118,24 @@ public class Main {
 
         for (int i = 1; i <= nbVirtuels; i++) {
             String nomBot = "Bot" + i;
-            Strategie strategie = new StrategieAleatoire(); 
+            System.out.println("Quelle stratégie pour " + nomBot + " ?");
+            System.out.println("1 - Aléatoire");
+            System.out.println("2 - Offensive");
+            System.out.println("3 - Défensive");
+            System.out.print("Votre choix : ");
+            
+            int choixStrat = 1;
+            try { choixStrat = sc.nextInt(); } catch(Exception e) { sc.next(); }
+            
+            Strategie strategie;
+            switch(choixStrat) {
+                case 2: strategie = new StrategieOffensive(); break;
+                case 3: strategie = new StrategieDefensive(); break;
+                default: strategie = new StrategieAleatoire(); break;
+            }
+            
             partie.ajouterJoueur(new JoueurVirtuel(nomBot, strategie));
-            System.out.println("Joueur virtuel ajouté : " + nomBot);
+            System.out.println("Joueur virtuel ajouté : " + nomBot + " (" + strategie.getClass().getSimpleName() + ")");
         }
 
         System.out.println("\nDémarrage de la partie...\n");
