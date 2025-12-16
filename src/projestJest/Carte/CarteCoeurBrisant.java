@@ -5,14 +5,14 @@ import projestJest.ValeurCarte;
 import projestJest.SuiteCarte;
 
 /**
- * Extension "Le Cœur Brisant".
- * Se comporte comme un 6 de Cœur avec des règles de score et de trophée spécifiques.
+ * Extension "Le Coeur Brisant".
+ * Se comporte comme un 6 de Coeur avec des règles de score et de trophée spécifiques.
  */
 public class CarteCoeurBrisant extends CarteSuite {
 
     /**
      * Constructeur de CarteCoeurBrisant.
-     * Initialisé comme un 6 de Cœur.
+     * Initialisé comme un 6 de Coeur.
      */
     public CarteCoeurBrisant() {
         super(ValeurCarte.SIX, SuiteCarte.COEUR);
@@ -20,6 +20,6 @@ public class CarteCoeurBrisant extends CarteSuite {
 
     
     public String toString() {
-        return "Le Cœur Brisant (6 de Coeur)";
+        return "Le Coeur Brisant (6 de Coeur)";
     }
 }

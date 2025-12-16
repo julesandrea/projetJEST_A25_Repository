@@ -319,7 +319,7 @@ public class Partie implements Serializable {
                     }
                     
                     if (joueurCoeurBrisant != null && joueurCoeurBrisant != gagnant) {
-                        vue.afficherMessage("MAIS " + joueurCoeurBrisant.getNom() + " possède le Cœur Brisant et vole le trophée !");
+                        vue.afficherMessage("MAIS " + joueurCoeurBrisant.getNom() + " possède le Coeur Brisant et vole le trophée !");
                         gagnant = joueurCoeurBrisant;
                     }
                     
