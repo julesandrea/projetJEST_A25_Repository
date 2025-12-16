@@ -104,7 +104,7 @@ public class Main {
             nbTotal = nbHumains + nbVirtuels;
             
             if (nbTotal < 3 || nbTotal > 4) {
-                System.out.println("❌ Le jeu se joue uniquement à 3 ou 4 joueurs ! Réessayez.");
+                System.out.println("Le jeu se joue uniquement à 3 ou 4 joueurs ! Réessayez.");
             }
         } while (nbTotal < 3 || nbTotal > 4);
 
