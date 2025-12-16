@@ -10,7 +10,7 @@ import java.io.Serializable;
 public abstract class Carte implements Serializable {
 
     protected ValeurCarte valeur;
-    protected SuiteCarte suite; // null pour le Joker et les trophées
+    protected SuiteCarte suite; 
 
     /**
      * Constructeur de Carte.
@@ -42,7 +42,7 @@ public abstract class Carte implements Serializable {
      */
     public abstract void accepter(VisiteurScore visiteur);
 
-    @Override
+    
     public String toString() {
         if (suite == null)
             return valeur.toString();

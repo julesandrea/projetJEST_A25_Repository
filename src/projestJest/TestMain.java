@@ -10,10 +10,8 @@ public class TestMain {
     public static void main(String[] args) {
         System.out.println(">>> DÉBUT DU TEST AUTOMATISÉ <<<");
         
-        // 1. Création de la partie
         Partie partie = new Partie();
         
-        // 2. Injection de la Vue de Test via Reflection (pour ne pas modifier Partie.java)
         try {
             Field vueField = Partie.class.getDeclaredField("vue");
             vueField.setAccessible(true);
@@ -24,18 +22,15 @@ public class TestMain {
             return;
         }
 
-        // 3. Configuration de la partie
         partie.setVariante(new VarianteClassique());
-        partie.activerExtensions(); // Test avec extensions
+        partie.activerExtensions(); 
         System.out.println(">>> Extensions et Variante configurées.");
 
-        // 4. Ajout de joueurs virtuels (pour ne pas bloquer sur des inputs humains)
         partie.ajouterJoueur(new JoueurVirtuel("Bot1", new StrategieAleatoire()));
         partie.ajouterJoueur(new JoueurVirtuel("Bot2", new StrategieAleatoire()));
-        partie.ajouterJoueur(new JoueurVirtuel("Bot3", new StrategieAleatoire())); // Partie à 3 joueurs
+        partie.ajouterJoueur(new JoueurVirtuel("Bot3", new StrategieAleatoire())); 
         System.out.println(">>> 3 Joueurs virtuels ajoutés.");
 
-        // 5. Lancement
         try {
             partie.demarrer();
             System.out.println(">>> Partie terminée normalement.");

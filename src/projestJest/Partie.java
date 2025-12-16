@@ -102,7 +102,7 @@ public class Partie implements Serializable {
      * Demande à l'utilisateur s'il souhaite sauvegarder la partie courante.
      */
     private void proposerSauvegarde() {
-        int choix = vue.demanderChoixInt("\nVoulez-vous sauvegarder et quitter ? 1:Oui 0:Non", 0, 1);
+        int choix = vue.demanderChoixInt("\nVoulez-vous sauvegarder et fermer ou continuer ? 1: Sauvegarder et fermer, 0: Continuer sans sauvegarder", 0, 1);
         if (choix == 1) {
             sauvegarderPartie();
             vue.afficherMessage("Partie sauvegardée. Au revoir !");
@@ -168,6 +168,9 @@ public class Partie implements Serializable {
             for (Joueur j : joueurs) {
                 Carte c1 = it.hasNext() ? it.next() : null;
                 Carte c2 = it.hasNext() ? it.next() : null;
+                	if (c1 == null || c2 == null) {
+                	    break; 
+                	}
                 cartesDistribuees.put(j, new Carte[]{c1, c2});
             }
         }

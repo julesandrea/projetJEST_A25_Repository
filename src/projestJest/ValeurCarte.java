@@ -9,7 +9,7 @@ public enum ValeurCarte {
     DEUX(2), 
     TROIS(3), 
     QUATRE(4), 
-    SIX(6), // Pour l'extension Cœur Brisant
+    SIX(6), 
     JOKER(0);
 
     /** Valeur brute, utilisée pour comparer les cartes dans les tours */

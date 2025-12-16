@@ -67,7 +67,7 @@ public class Jest implements Serializable {
         return compteur.getScoreTotal();
     }
 
-    @Override
+    
     public String toString() {
         return cartes.toString();
     }

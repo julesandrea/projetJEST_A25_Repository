@@ -4,54 +4,62 @@ import projestJest.Carte.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Calculateur de score implémentant le pattern Visitor.
+ * Parcourt les cartes du Jest pour appliquer les règles de score.
+ */
 public class CompteurScore implements VisiteurScore {
 
-    // Cartes du Jest
     private List<CarteSuite> cartesSuite = new ArrayList<>();
     private List<CarteTrophee> trophees = new ArrayList<>();
     private CarteJoker joker = null;
 
     private int scoreTemp = 0;
 
-    // Options activées par les variantes
     private boolean asToujours5 = false;
     private boolean coeursJamaisNegatifs = false;
 
-    /* ============================================================
-                          MÉTHODES DE CONFIGURATION
-       ============================================================ */
-
+    /**
+     * Active ou désactive la variante "As valent toujours 5".
+     * @param b Vrai pour activer.
+     */
     public void setAsToujours5(boolean b) {
         this.asToujours5 = b;
     }
 
+    /**
+     * Active ou désactive la variante "Coeurs jamais négatifs".
+     * @param b Vrai pour activer.
+     */
     public void setCoeursJamaisNegatifs(boolean b) {
         this.coeursJamaisNegatifs = b;
     }
 
-    /* ============================================================
-                             VISITEURS
-       ============================================================ */
-
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void visiter(CarteSuite carte) {
         cartesSuite.add(carte);
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void visiter(CarteJoker carte) {
         this.joker = carte;
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void visiter(CarteTrophee carte) {
         trophees.add(carte);
     }
 
-    /* ============================================================
-                       CALCUL GLOBAL DU SCORE
-       ============================================================ */
-
+    /**
+     * Calcule le score total en appliquant toutes les règles.
+     * @return Le score final.
+     */
     public int getScoreTotal() {
 
         scoreTemp = 0;
@@ -64,10 +72,6 @@ public class CompteurScore implements VisiteurScore {
 
         return scoreTemp;
     }
-
-    /* ============================================================
-                       RÈGLE 1 : COULEURS
-       ============================================================ */
 
     private void appliquerReglesCouleurs() {
 
@@ -86,15 +90,10 @@ public class CompteurScore implements VisiteurScore {
                     break;
 
                 case COEUR:
-                    // le cas des cœurs dépendra plus tard du Joker
                     break;
             }
         }
     }
-
-    /* ============================================================
-                       RÈGLE 2 : AS
-       ============================================================ */
 
     private void appliquerReglesAs() {
 
@@ -107,7 +106,6 @@ public class CompteurScore implements VisiteurScore {
                     memesCouleurs.add(c);
             }
 
-            // Cherche un As dans cette couleur
             CarteSuite as = null;
             for (CarteSuite c : memesCouleurs) {
                 if (c.getValeur().estAs()) {
@@ -118,56 +116,37 @@ public class CompteurScore implements VisiteurScore {
 
             if (as == null) continue;
 
-            // Variante : As valent toujours 5
             if (asToujours5) {
                 scoreTemp += (5 - as.getValeur().getFaceValue());
                 continue;
             }
 
-            // Règle classique : As vaut 5 seulement s'il est seul dans sa couleur
             if (memesCouleurs.size() == 1) {
-                scoreTemp += (5 - 1); // on ajoute +4
+                scoreTemp += (5 - 1); 
             }
         }
     }
 
-    /* ============================================================
-                       RÈGLE 3 : JOKER + COEURS
-       ============================================================ */
-
     private boolean magePresent = false;
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void visiter(CarteMage carte) {
         this.magePresent = true;
-        this.scoreTemp += 2; // Bonus direct du Mage
+        this.scoreTemp += 2; 
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void visiter(CarteExtension carte) {
-        // Logique générique extension (si besoin)
+        
     }
-
-    /* ============================================================
-                       RÈGLE 1 : COULEURS
-       ============================================================ */
-    
-    // ... (rest of methods)
-
-    /* ============================================================
-                       RÈGLE 3 : JOKER + COEURS
-       ============================================================ */
 
     private void appliquerReglesJoker() {
 
-        // Si le Mage et le Joker sont tous deux présents, l'effet du Joker est annulé
         if (joker != null && magePresent) {
-             // Joker neutralisé : ne rapporte rien, ne change pas les coeurs
-             // Les coeurs comptent normalement (positifs si option activée, ou rien ?)
-             // Règle standard sans Joker : Coeurs ne valent rien (0) sauf si variante CoeurJamaisNegatifs
-             
-             // Dans le doute, si Joker annulé = Comme si pas de Joker.
-             // Donc on applique la logique "Pas de Joker"
              
             int sommeCoeurs = 0;
             for (CarteSuite c : cartesSuite) {
@@ -182,7 +161,6 @@ public class CompteurScore implements VisiteurScore {
              return; 
         }
 
-        // Compter les cœurs
         int nbCoeurs = 0;
         int sommeCoeurs = 0;
 
@@ -193,42 +171,30 @@ public class CompteurScore implements VisiteurScore {
             }
         }
 
-        // Pas de Joker → règle simple
         if (joker == null) {
 
             if (coeursJamaisNegatifs) {
-                scoreTemp += sommeCoeurs; // tous positifs
+                scoreTemp += sommeCoeurs; 
             }
-            // sinon : cœurs valent 0 → règle classique
             return;
         }
 
-        // Joker présent (et Pas de Mage)
         if (nbCoeurs == 0) {
-            // Joker seul : +4
             scoreTemp += 4;
             return;
         }
 
         if (coeursJamaisNegatifs) {
-            // Variante : les cœurs ne descendent jamais en négatif
             scoreTemp += sommeCoeurs;
             return;
         }
 
-        // RÈGLES CLASSIQUES
         if (nbCoeurs < 4) {
-            // Joker + 1 à 3 cœurs : cœurs négatifs
             scoreTemp -= sommeCoeurs;
         } else {
-            // Joker + 4 cœurs : cœurs positifs
             scoreTemp += sommeCoeurs;
         }
     }
-
-    /* ============================================================
-                       RÈGLE 4 : PAIRES NOIRES
-       ============================================================ */
 
     private void appliquerReglesPairesNoires() {
 
@@ -250,13 +216,7 @@ public class CompteurScore implements VisiteurScore {
         }
     }
     
-    /* ============================================================
-                       RÈGLE 5 : TROPHÉES & SPÉCIAL
-       ============================================================ */
-
     private void appliquerReglesTrophees() {
-        // Cœur Brisant : 
-        // Identifiable par sa valeur SIX (6).
         
         boolean coeurBrisantPresent = false;
         
@@ -268,7 +228,6 @@ public class CompteurScore implements VisiteurScore {
         }
         
         if (coeurBrisantPresent) {
-            // Vérifier les 4 As
             int nbAs = 0;
             for (CarteSuite c : cartesSuite) {
                 if (c.getValeur().estAs()) nbAs++;
@@ -277,7 +236,7 @@ public class CompteurScore implements VisiteurScore {
             if (nbAs < 4) {
                 scoreTemp -= 6;
             } else {
-                // Si 4 As, annulé
+                
             }
         }
     }

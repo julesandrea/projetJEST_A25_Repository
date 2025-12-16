@@ -24,6 +24,7 @@ public class Main {
         
         System.out.println("1 - Nouvelle Partie");
         System.out.println("2 - Charger une partie");
+        System.out.println("3 - Supprimer une sauvegarde");
         System.out.print("Votre choix : ");
         int choixMenu = sc.nextInt();
         sc.nextLine(); 
@@ -39,6 +40,13 @@ public class Main {
                 partie.demarrer();
                 return;
             }
+        } else if (choixMenu == 3) {
+            java.io.File file = new java.io.File("sauvegarde.ser");
+            if (file.delete()) {
+                System.out.println("Sauvegarde supprimée avec succès.");
+            } else {
+                System.out.println("Aucune sauvegarde trouvée ou suppression impossible.");
+            }
         }
         
         if (partie == null) {
@@ -48,7 +56,7 @@ public class Main {
         System.out.println("Choisissez une variante :");
         System.out.println("1 - Règles classiques");
         System.out.println("2 - As valent toujours 5");
-        System.out.println("3 - Cœurs jamais négatifs");
+        System.out.println("3 - Coeurs jamais négatifs");
 
         System.out.print("Votre choix : ");
         int choixVariante = sc.nextInt();

@@ -25,12 +25,12 @@ public class CarteExtension extends Carte {
         return regleSpeciale;
     }
 
-    @Override
+    
     public void accepter(VisiteurScore visiteur) {
         visiteur.visiter(this);
     }
 
-    @Override
+    
     public String toString() {
         return "Extension [" + regleSpeciale + "]";
     }

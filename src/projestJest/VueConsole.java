@@ -30,24 +30,24 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         }
     }
 
-    @Override
+    
     public void afficherMessage(String msg) {
         System.out.println(msg);
     }
 
-    @Override
+    
     public void afficherTrophees(List<Carte> trophees) {
         System.out.println("\nTrophées : " + trophees);
     }
 
-    @Override
+    
     public void afficherTour(int numTour) {
         System.out.println("\n----------------------------");
         System.out.println("      TOUR " + numTour);
         System.out.println("----------------------------");
     }
 
-    @Override
+    
     public void afficherOffres(List<Joueur> joueurs) {
         System.out.println("\nOffres actuelles :");
         for (Joueur j : joueurs) {
@@ -55,12 +55,12 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         }
     }
 
-    @Override
+    
     public void afficherFinTour(int numTour) {
         System.out.println("\nFin du tour " + numTour + ".");
     }
 
-    @Override
+    
     public void afficherResultats(List<Joueur> joueurs, Joueur vainqueur, int scoreMax) {
         System.out.println("\n=== Scores finaux ===");
         for (Joueur j : joueurs) {
@@ -74,7 +74,7 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         }
     }
 
-    @Override
+    
     public int demanderChoixInt(String question, int min, int max) {
         int choix;
         do {
@@ -89,13 +89,13 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         return choix;
     }
 
-    @Override
+    
     public String demanderChaine(String question) {
         System.out.print(question);
         return scanner.nextLine();
     }
 
-    @Override
+    
     public int demanderChoixOffre(Joueur j, Carte c1, Carte c2) {
         System.out.println("\n" + j.getNom() + ", voici vos cartes : ");
         System.out.println("1 : " + c1);
@@ -103,7 +103,7 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         return demanderChoixInt("Choisissez celle à mettre VISIBLE", 1, 2);
     }
 
-    @Override
+    
     public int demanderChoixPrise(Joueur j, Offre o) {
         System.out.println("\n" + j.getNom() + ", offre sélectionnée : " + o);
         System.out.println("1 : Prendre la carte visible");
@@ -111,11 +111,15 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         return demanderChoixInt("Votre choix", 1, 2);
     }
 
-    @Override
+    
     public Joueur demanderChoixAdversaire(Joueur j, List<Joueur> adversaires) {
         System.out.println("\n" + j.getNom() + ", choisissez un joueur chez qui prendre une carte :");
         for (int i = 0; i < adversaires.size(); i++) {
-            System.out.println((i + 1) + " : " + adversaires.get(i).getNom());
+            Joueur adv = adversaires.get(i);
+            String visible = (adv.getOffre() != null && adv.getOffre().getFaceVisible() != null) 
+                           ? adv.getOffre().getFaceVisible().toString() 
+                           : "Aucune";
+            System.out.println((i + 1) + " : " + adv.getNom() + " (Carte visible : " + visible + ")");
         }
         int choix = demanderChoixInt("Numéro du joueur cible", 1, adversaires.size());
         return adversaires.get(choix - 1);

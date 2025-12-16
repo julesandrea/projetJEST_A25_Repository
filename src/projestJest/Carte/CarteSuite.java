@@ -22,7 +22,7 @@ public class CarteSuite extends Carte {
             throw new IllegalArgumentException("Une carte de suite doit avoir une couleur.");
     }
 
-    @Override
+    
     public void accepter(VisiteurScore visiteur) {
         visiteur.visiter(this);
     }

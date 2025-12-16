@@ -84,7 +84,7 @@ public class Offre implements Serializable {
         return prendreVisible ? prendreVisible() : prendreCachee();
     }
 
-    @Override
+    
     public String toString() {
         String visible = (faceVisible == null ? "X" : faceVisible.toString());
         String cachee  = (faceCachee == null ? "X" : "???");

@@ -25,12 +25,12 @@ public class CarteTrophee extends Carte {
         return condition;
     }
 
-    @Override
+    
     public void accepter(VisiteurScore visiteur) {
         visiteur.visiter(this);
     }
 
-    @Override
+    
     public String toString() {
         return "Trophée : " + condition;
     }

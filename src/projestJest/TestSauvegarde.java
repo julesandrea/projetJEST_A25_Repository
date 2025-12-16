@@ -10,29 +10,23 @@ public class TestSauvegarde {
     public static void main(String[] args) throws Exception {
          System.out.println(">>> DÉBUT TEST SAUVEGARDE <<<");
 
-         // --- 1. Création état initial P1 ---
          Partie p1 = new Partie();
          
-         // Setup joueurs
          p1.ajouterJoueur(new JoueurVirtuel("BotSave1", new StrategieAleatoire()));
          p1.ajouterJoueur(new JoueurVirtuel("BotSave2", new StrategieOffensive()));
          
-         // Setup Variante & Extensions
          p1.setVariante(new VarianteAsToujours5());
-         p1.activerExtensions(); // Ajoute cartes à la pioche
+         p1.activerExtensions(); 
          
-         // Injection VueTest (pour ne pas crash si affichage)
          Field vueField = Partie.class.getDeclaredField("vue");
          vueField.setAccessible(true);
          vueField.set(p1, new VueTest());
 
          System.out.println("[P1] État initial configuré : Variante=" + new VarianteAsToujours5().getNom() + ", Joueurs=2");
 
-         // --- 2. Sauvegarde ---
          System.out.println(">>> Sauvegarde de P1 dans sauvegarde.ser...");
          p1.sauvegarderPartie();
          
-         // --- 3. Chargement P2 ---
          System.out.println(">>> Chargement dans P2...");
          Partie p2 = Partie.chargerPartie();
          
@@ -41,9 +35,6 @@ public class TestSauvegarde {
              return;
          }
          
-         // --- 4. Comparaison / Vérification ---
-         
-         // A. Vérification de la Vue (transient)
          InterfaceUtilisateur vueP2 = (InterfaceUtilisateur) vueField.get(p2);
          if (vueP2 == null) {
              System.err.println("!!! ECHEC: La vue de P2 est null (initVue non appelé ?) !!!");
@@ -51,7 +42,6 @@ public class TestSauvegarde {
              System.out.println("[OK] Vue P2 réinitialisée correctement (" + vueP2.getClass().getSimpleName() + ")");
          }
 
-         // B. Vérification des Joueurs
          Field joueursField = Partie.class.getDeclaredField("joueurs");
          joueursField.setAccessible(true);
          List<Joueur> j1 = (List<Joueur>) joueursField.get(p1);
@@ -68,7 +58,6 @@ public class TestSauvegarde {
          }
          System.out.println("[OK] Liste des joueurs conservée.");
          
-         // C. Vérification de la Variante
          Field varianteField = Partie.class.getDeclaredField("variante");
          varianteField.setAccessible(true);
          Variante v1 = (Variante) varianteField.get(p1);
@@ -79,13 +68,11 @@ public class TestSauvegarde {
          }
          System.out.println("[OK] Variante conservée (" + v2.getNom() + ").");
          
-         // D. Vérification de la Pioche
          Field piocheField = Partie.class.getDeclaredField("pioche");
          piocheField.setAccessible(true);
          Pioche pioche1 = (Pioche) piocheField.get(p1);
          Pioche pioche2 = (Pioche) piocheField.get(p2);
          
-         // On vérifie juste la taille pour s'assurer que les extensions ajoutées sont là
          if (pioche1.taille() != pioche2.taille()) {
              throw new RuntimeException("Taille pioche différente : " + pioche1.taille() + " vs " + pioche2.taille());
          }

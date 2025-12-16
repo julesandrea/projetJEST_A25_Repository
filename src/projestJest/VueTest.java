@@ -10,32 +10,44 @@ import java.util.List;
  */
 public class VueTest implements InterfaceUtilisateur {
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherMessage(String msg) {
         System.out.println("[TEST] " + msg);
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherTrophees(List<Carte> trophees) {
         System.out.println("[TEST] Trophées : " + trophees);
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherTour(int numTour) {
         System.out.println("[TEST] --- TOUR " + numTour + " ---");
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherOffres(List<Joueur> joueurs) {
         System.out.println("[TEST] Offres affichées.");
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherFinTour(int numTour) {
         System.out.println("[TEST] Fin tour " + numTour);
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void afficherResultats(List<Joueur> joueurs, Joueur vainqueur, int scoreMax) {
         System.out.println("[TEST] RÉSULTATS FINAUX :");
         for (Joueur j : joueurs) {
@@ -48,39 +60,42 @@ public class VueTest implements InterfaceUtilisateur {
         }
     }
 
-    // --- Mocks des entrées ---
-
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public int demanderChoixInt(String question, int min, int max) {
         System.out.println("[TEST-INPUT] Demande Int : " + question);
         
-        // Si c'est la sauvegarde (0:Non, 1:Oui) -> on répond 0 (Non) pour continuer
         if (question.contains("sauvegarder")) return 0;
         
-        // Choix par défaut : le min
         return min;
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public String demanderChaine(String question) {
         return "TestString";
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public int demanderChoixOffre(Joueur j, Carte c1, Carte c2) {
-        // Toujours choix 1
         return 1;
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public int demanderChoixPrise(Joueur j, Offre o) {
-        // Toujours choix 1
         return 1;
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public Joueur demanderChoixAdversaire(Joueur j, List<Joueur> adversaires) {
-        // Toujours le premier
         return adversaires.get(0);
     }
 }

@@ -15,12 +15,12 @@ public class CarteMage extends Carte {
         super(null, null);
     }
 
-    @Override
+    
     public void accepter(VisiteurScore visiteur) {
         visiteur.visiter(this);
     }
 
-    @Override
+    
     public String toString() {
         return "Le Mage (Extension)";
     }

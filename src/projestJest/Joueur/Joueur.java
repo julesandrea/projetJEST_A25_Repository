@@ -16,7 +16,7 @@ public abstract class Joueur implements Serializable {
     protected String nom;
     protected Offre offre;
     protected Jest jest;
-    protected Strategie strategie; // null pour un humain
+    protected Strategie strategie; 
 
     /**
      * Constructeur parent pour tous les joueurs.
@@ -80,7 +80,7 @@ public abstract class Joueur implements Serializable {
      */
     public abstract Joueur choisirJoueurCible(List<Joueur> joueursValides, InterfaceUtilisateur vue);
 
-    @Override
+    
     public String toString() {
         return nom + " | Jest : " + jest;
     }

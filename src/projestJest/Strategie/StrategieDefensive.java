@@ -8,46 +8,44 @@ import java.util.Random;
 
 /**
  * Stratégie défensive pour un bot.
- * Privilégie la prudence, évite les risques (Carreaux, Cœurs risqués) et tente de bloquer les adversaires.
+ * Privilégie la prudence, évite les risques (Carreaux, Coeurs risqués) et tente de bloquer les adversaires.
  */
 public class StrategieDefensive implements Strategie {
 
     private Random rand = new Random();
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public boolean choisirVisibleOuCachee(Offre offre) {
 
         Carte visible = offre.getFaceVisible();
         SuiteCarte couleur = visible.getSuite();
         int valeur = visible.getValeur().getFaceValue();
 
-        // 1. ÉVITER les carreaux à tout prix
         if (couleur == SuiteCarte.CARREAU)
             return false; 
 
-        // 2. Méfiance envers les cœurs sans Joker
         if (couleur == SuiteCarte.COEUR && valeur >= 2)
             return false;
 
-        // 3. Une carte visible très forte peut être dangereuse pour les autres → on la prend
         if (valeur == 4 || valeur == 3)
             return true;
 
-        // 4. Si visible est neutre (petite noire), on hésite
         if (couleur == SuiteCarte.PIQUE || couleur == SuiteCarte.TREFLE) {
             if (valeur <= 2)
                 return rand.nextInt(100) < 40; 
         }
 
-        // 5. AS visible = potentiellement risqué (si tu n’as pas la couleur)
         if (visible.getValeur().estAs())
             return false; 
 
-        // 6. Comportement par défaut très défensif
         return false;
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public Joueur choisirOffre(List<Joueur> joueursValides) {
 
         Joueur meilleur = null;
@@ -68,8 +66,9 @@ public class StrategieDefensive implements Strategie {
     }
 
     /**
-     * Évalue le danger d'une carte : plus la carte est dangereuse pour la suite du jeu,
-     * plus le joueur défensif souhaite la neutraliser.
+     * Évalue le danger d'une carte : plus la carte est dangereuse, plus le bot veut la neutraliser.
+     * @param c La carte à évaluer.
+     * @return Score de dangerosité.
      */
     private int evaluerDanger(Carte c) {
 

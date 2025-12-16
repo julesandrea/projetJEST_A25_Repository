@@ -8,12 +8,12 @@ import projestJest.*;
  */
 public class VarianteClassique implements Variante {
 
-    @Override
+    
     public void appliquerReglesDeScore(CompteurScore compteur) {
-        // Aucune règle spéciale à activer
+        
     }
 
-    @Override
+    
     public String getNom() {
         return "Règles classiques";
     }

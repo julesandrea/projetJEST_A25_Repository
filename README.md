@@ -28,7 +28,7 @@ Application de la règle spéciale du dernier joueur.
 
 Redistribution correcte aux tours suivants.
 
-Calcul complet du score du Jest (Aces, Joker, Cœurs, Paires noires, etc.).
+Calcul complet du score du Jest (Aces, Joker, Coeurs, Paires noires, etc.).
 
 Détermination automatique du vainqueur.
 

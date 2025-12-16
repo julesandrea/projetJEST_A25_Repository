@@ -14,12 +14,12 @@ public class CarteJoker extends Carte {
         super(ValeurCarte.JOKER, null);
     }
 
-    @Override
+    
     public void accepter(VisiteurScore visiteur) {
         visiteur.visiter(this);
     }
 
-    @Override
+    
     public String toString() {
         return "Joker";
     }

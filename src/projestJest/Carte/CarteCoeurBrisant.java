@@ -18,7 +18,7 @@ public class CarteCoeurBrisant extends CarteSuite {
         super(ValeurCarte.SIX, SuiteCarte.COEUR);
     }
 
-    @Override
+    
     public String toString() {
         return "Le Cœur Brisant (6 de Coeur)";
     }
