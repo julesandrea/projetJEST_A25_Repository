@@ -17,6 +17,7 @@ public abstract class Joueur implements Serializable {
     protected Offre offre;
     protected Jest jest;
     protected Strategie strategie; 
+    protected int score; // Score calculé en fin de partie
 
     /**
      * Constructeur parent pour tous les joueurs.
@@ -25,6 +26,7 @@ public abstract class Joueur implements Serializable {
     public Joueur(String nom) {
         this.nom = nom;
         this.jest = new Jest();
+        this.score = 0;
     }
 
     /**
@@ -32,6 +34,14 @@ public abstract class Joueur implements Serializable {
      */
     public String getNom() {
         return nom;
+    }
+    
+    public int getScore() {
+        return score;
+    }
+    
+    public void setScore(int score) {
+        this.score = score;
     }
 
     /**

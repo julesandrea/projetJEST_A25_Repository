@@ -11,14 +11,18 @@ import java.io.*;
  * Gère le déroulement de la partie, les joueurs, la pioche, les tours et le calcul des scores.
  * Implémente Serializable pour la sauvegarde.
  */
-public class Partie implements Serializable {
+public class Partie extends java.util.Observable implements Serializable {
 
     private List<Joueur> joueurs;
     private Pioche pioche;
     private List<Carte> trophees;
     private Variante variante;
     private int tour = 1;
-    private transient InterfaceUtilisateur vue; 
+    private transient InterfaceUtilisateur vue;
+    
+    public List<Joueur> getJoueurs() { return joueurs; }
+    public List<Carte> getTrophees() { return trophees; }
+    private int getTour() { return tour; } 
 
     /**
      * Constructeur de la Partie.
@@ -32,6 +36,13 @@ public class Partie implements Serializable {
         vue = new VueConsole(); 
     }
     
+    /**
+     * Initialise ou restaure la vue après le chargement d'une partie.
+     */
+    public void setVue(InterfaceUtilisateur vue) {
+        this.vue = vue;
+    }
+
     /**
      * Initialise ou restaure la vue après le chargement d'une partie.
      */
@@ -225,6 +236,8 @@ public class Partie implements Serializable {
         }
 
         vue.afficherFinTour(tour);
+        setChanged();
+        notifyObservers();
     }
 
     /**
@@ -240,12 +253,15 @@ public class Partie implements Serializable {
             Carte c1 = j1.getOffre().getFaceVisible();
             Carte c2 = j2.getOffre().getFaceVisible();
 
-            int v1 = c1.getValeur().getFaceValue();
-            int v2 = c2.getValeur().getFaceValue();
+            int v1 = (c1.getValeur() != null) ? c1.getValeur().getFaceValue() : 0;
+            int v2 = (c2.getValeur() != null) ? c2.getValeur().getFaceValue() : 0;
 
             if (v1 != v2) return Integer.compare(v2, v1);
 
-            return Integer.compare(c2.getSuite().getForce(), c1.getSuite().getForce());
+            int s1 = (c1.getSuite() != null) ? c1.getSuite().getForce() : 0;
+            int s2 = (c2.getSuite() != null) ? c2.getSuite().getForce() : 0;
+
+            return Integer.compare(s2, s1);
         });
         
         StringBuilder sb = new StringBuilder("Ordre de prise : ");
@@ -354,6 +370,7 @@ public class Partie implements Serializable {
 
         for (Joueur j : joueurs) {
             int score = j.getJest().calculerScore(variante);
+            j.setScore(score); // Store score for GUI
             if (score > max) {
                 max = score;
                 gagnant = j;
