@@ -10,7 +10,14 @@ import java.io.Serializable;
  * Implémentation de la vue en console.
  * Gère les affichages texte et la saisie utilisateur via Scanner.
  */
-public class VueConsole implements InterfaceUtilisateur, Serializable {
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+/**
+ * Implémentation de la vue en console.
+ * Gère les affichages texte et la saisie utilisateur via Scanner.
+ */
+public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyChangeListener {
     
     private transient Scanner scanner;
 
@@ -123,5 +130,29 @@ public class VueConsole implements InterfaceUtilisateur, Serializable {
         }
         int choix = demanderChoixInt("Numéro du joueur cible", 1, adversaires.size());
         return adversaires.get(choix - 1);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        switch (evt.getPropertyName()) {
+            case "message":
+                afficherMessage((String) evt.getNewValue());
+                break;
+            case "trophees":
+                afficherTrophees((List<Carte>) evt.getNewValue());
+                break;
+            case "tour":
+                afficherTour((Integer) evt.getNewValue());
+                break;
+            case "offres":
+                afficherOffres((List<Joueur>) evt.getNewValue());
+                break;
+            case "fin_tour":
+                afficherFinTour((Integer) evt.getNewValue());
+                break;
+            case "resultats":
+                afficherResultats((List<Joueur>) evt.getNewValue(), null, 0); 
+                break;
+        }
     }
 }

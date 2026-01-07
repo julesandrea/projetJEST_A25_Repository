@@ -1,29 +1,34 @@
 package projestJest;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.awt.*;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.*;
 import projestJest.Carte.Carte;
 import projestJest.Joueur.Joueur;
 
-public class VueGraphique extends JFrame implements Observer {
+public class VueGraphique extends JFrame implements PropertyChangeListener {
 
     private Controleur controleur;
     private Partie partie;
     
-    private JPanel centerPanel; // Le tapis de jeu (Joueurs + Offres/Jest)
-    private JPanel actionPanel; // Zone d'action (Main du joueur, Choix)
-    private JLabel statusLabel; // Instruction courante
+    private JPanel centerPanel; // Le tapis de jeu
+    private JPanel southContainer; // Conteneur Sud (Trophées + Actions)
+    private JPanel actionPanel; 
+    private JPanel trophyPanel; // Footer Trophées
+    private JLabel statusLabel;
     
+    // Pour le récapitulatif final
+    private List<Carte> listTrophees;
+
     public VueGraphique(Controleur controleur, Partie partie) {
         this.controleur = controleur;
         this.partie = partie;
-        partie.addObserver(this); 
+        partie.addPropertyChangeListener(this); 
         
         setTitle("JEST - Interface Graphique");
-        setSize(1200, 800);
+        setSize(1200, 900); // Retour taille standard (hauteur gardée pour trophées)
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
@@ -36,28 +41,61 @@ public class VueGraphique extends JFrame implements Observer {
         
         // --- CENTER : Table de jeu ---
         centerPanel = new JPanel();
-        centerPanel.setLayout(new GridLayout(0, 1, 10, 10)); // 1 ligne par joueur (ou grille selon nb)
-        centerPanel.setBackground(new Color(34, 139, 34)); // Tapis vert
+        centerPanel.setLayout(new GridLayout(0, 1, 10, 10)); 
+        centerPanel.setBackground(new Color(34, 139, 34)); 
         JScrollPane scrollPane = new JScrollPane(centerPanel);
         add(scrollPane, BorderLayout.CENTER);
         
-        // --- BOTTOM : Actions ---
+        // --- SOUTH : Container ---
+        southContainer = new JPanel();
+        southContainer.setLayout(new BoxLayout(southContainer, BoxLayout.Y_AXIS));
+        
+        // 1. Trophées (Bas de page) - Plus grand
+        trophyPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        trophyPanel.setBackground(new Color(20, 80, 20));
+        trophyPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(255, 215, 0)), "Trophées en jeu", 
+            0, 0, new Font("Arial", Font.BOLD, 12), new Color(255, 215, 0)));
+        southContainer.add(trophyPanel);
+        
+        // 2. Actions (Taille réduite pour visibilité du plateau)
         actionPanel = new JPanel();
-        actionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        actionPanel.setPreferredSize(new Dimension(1200, 250));
+        actionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10)); 
+        actionPanel.setPreferredSize(new Dimension(1200, 110)); // Réduit à 110px
         actionPanel.setBackground(Color.DARK_GRAY);
-        add(actionPanel, BorderLayout.SOUTH);
+        southContainer.add(actionPanel);
+        
+        add(southContainer, BorderLayout.SOUTH);
     }
     
-    // --- Observer Update ---
+    // --- PropertyChangeListener Implementation ---
     @Override
-    public void update(Observable o, Object arg) {
-        mettreAJour();
+    public void propertyChange(PropertyChangeEvent evt) {
+        switch (evt.getPropertyName()) {
+            case Partie.PROP_MESSAGE:
+                afficherMessage((String) evt.getNewValue());
+                break;
+            case Partie.PROP_TROPHEES:
+                afficherTrophees((List<Carte>) evt.getNewValue());
+                break;
+            case Partie.PROP_TOUR:
+                afficherTour((Integer) evt.getNewValue());
+                break;
+            case Partie.PROP_OFFRES:
+                afficherOffres((List<Joueur>) evt.getNewValue());
+                break;
+            case Partie.PROP_FIN_TOUR:
+                afficherFinTour((Integer) evt.getNewValue());
+                break;
+            case Partie.PROP_RESULTATS:
+                afficherResultats((List<Joueur>) evt.getNewValue(), null, 0);
+                break;
+        }
     }
     
     public void setPartie(Partie p) {
         this.partie = p;
-        if (p != null) p.addObserver(this);
+        if (p != null) p.addPropertyChangeListener(this);
     }
 
     // Redessine tout le plateau (Modèle -> Vue)
@@ -140,40 +178,114 @@ public class VueGraphique extends JFrame implements Observer {
     }
 
     public void afficherMessage(String msg) {
-        System.out.println("[GUI Log] " + msg);
-        // Popup pour les événements importants (Trophées)
-        if (msg.toLowerCase().contains("trophée") || msg.contains("vainqueur")) {
-            JOptionPane.showMessageDialog(this, msg, "Information Jeu", JOptionPane.INFORMATION_MESSAGE);
+        // Envoi console simple car le log graphique a été retiré sur demande
+        System.out.println("[GUI Message] " + msg);
+        
+        // Popup pour Vainqueur Final uniquement (facultatif)
+        if (msg.contains("vainqueur")) {
+            JOptionPane.showMessageDialog(this, msg, "Fin de Partie", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
     public void afficherTrophees(java.util.List<Carte> trophees) {
-        StringBuilder sb = new StringBuilder("Trophées en jeu :\n");
-        for (Carte c : trophees) {
-            sb.append("- ").append(c.toString()).append("\n");
+        this.listTrophees = new java.util.ArrayList<>(trophees); // Copie défensive !
+        if (trophyPanel != null) {
+            trophyPanel.removeAll();
+            for (Carte c : trophees) {
+                CarteGraphique cg = new CarteGraphique(c, false);
+                cg.setPreferredSize(new Dimension(60, 90)); // Taille réduite
+                trophyPanel.add(cg);
+            }
+            trophyPanel.revalidate();
+            trophyPanel.repaint();
         }
-        JOptionPane.showMessageDialog(this, sb.toString(), "Trophées", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void afficherResultats(java.util.List<Joueur> joueurs, Joueur vainqueur, int scoreMax) {
-        // Trier les joueurs par score (descendant)
         joueurs.sort((j1, j2) -> Integer.compare(j2.getScore(), j1.getScore()));
 
+        // Fallback si la liste des trophées n'a pas été capturée via l'événement
+        if (listTrophees == null || listTrophees.isEmpty()) {
+            if (partie != null) {
+                listTrophees = partie.getTrophees();
+            }
+        }
+
         JDialog podium = new JDialog(this, "Podium - Résultats Finaux", true);
-        podium.setSize(600, 600);
+        // Fullscreen
+        podium.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         podium.setLayout(new BorderLayout());
 
-        JPanel listPanel = new JPanel();
-        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-        listPanel.setBackground(new Color(34, 139, 34));
+        JPanel mainContent = new JPanel(new BorderLayout());
 
         JLabel title = new JLabel("RÉSULTATS FINAUX", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 32));
-        title.setForeground(new Color(255, 215, 0)); // Gold
+        title.setForeground(new Color(255, 215, 0)); 
         title.setOpaque(true);
         title.setBackground(new Color(34, 100, 34));
         title.setBorder(BorderFactory.createEmptyBorder(20,0,20,0));
         podium.add(title, BorderLayout.NORTH);
+
+        // --- RECAP TROPHEES ---
+        JPanel recapPanel = new JPanel();
+        recapPanel.setLayout(new BorderLayout()); // Changement layout global recap
+        recapPanel.setBackground(new Color(20, 80, 20)); 
+        recapPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.CYAN), "Qui a gagné quoi ?",
+            0, 0, new Font("Arial", Font.BOLD, 14), Color.CYAN));
+        
+        // Conteneur horizontal pour les trophées
+        JPanel trophiesRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 10));
+        trophiesRow.setOpaque(false);
+
+        if (listTrophees != null && !listTrophees.isEmpty()) {
+            for (Carte t : listTrophees) {
+                // Panel individuel pour chaque trophée (Carte + Texte)
+                JPanel trophyItem = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                trophyItem.setOpaque(false);
+                trophyItem.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 50), 1)); // Léger cadre
+                
+                // Carte
+                CarteGraphique cg = new CarteGraphique(t, false);
+                cg.setPreferredSize(new Dimension(60, 90));
+                trophyItem.add(cg);
+                
+                // Gagnant ?
+                String winnerName = "Personne";
+                String condition = ""; 
+                if (t instanceof projestJest.Carte.CarteTrophee) {
+                    condition = " <i>(" + ((projestJest.Carte.CarteTrophee) t).getCondition() + ")</i>";
+                }
+                
+                // Recherche du possesseur
+                for (Joueur j : joueurs) {
+                    if (j.getJest().getCartes().stream().anyMatch(c -> c.toString().equals(t.toString()))) {
+                        winnerName = j.getNom();
+                        break;
+                    }
+                }
+                
+                JLabel info = new JLabel("<html><b>" + t.toString() + "</b>" + condition + "<br>Gagné par <font color='yellow'>" + winnerName + "</font></html>");
+                info.setForeground(Color.WHITE);
+                info.setFont(new Font("Arial", Font.PLAIN, 14));
+                trophyItem.add(info);
+                
+                trophiesRow.add(trophyItem);
+            }
+        } else {
+            JLabel hintLabel = new JLabel("<html><center>Pas de données sur les trophées initiaux.</center></html>");
+            hintLabel.setForeground(Color.WHITE);
+            trophiesRow.add(hintLabel);
+        }
+        
+        recapPanel.add(trophiesRow, BorderLayout.CENTER);
+        mainContent.add(recapPanel, BorderLayout.NORTH);
+
+        JPanel listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBackground(new Color(34, 139, 34));
+        
+        mainContent.add(listPanel, BorderLayout.CENTER);
 
         int rank = 1;
         for (Joueur j : joueurs) {
@@ -195,7 +307,7 @@ public class VueGraphique extends JFrame implements Observer {
             cardPanel.setOpaque(false);
             for (Carte c : j.getJest().getCartes()) {
                  CarteGraphique cg = new CarteGraphique(c, false);
-                 cg.setPreferredSize(new Dimension(50, 75));
+                 cg.setPreferredSize(new Dimension(60, 90)); // Taille standardisée
                  cardPanel.add(cg);
             }
             pPanel.add(cardPanel, BorderLayout.CENTER);
@@ -204,7 +316,7 @@ public class VueGraphique extends JFrame implements Observer {
             rank++;
         }
 
-        JScrollPane scroll = new JScrollPane(listPanel);
+        JScrollPane scroll = new JScrollPane(mainContent);
         podium.add(scroll, BorderLayout.CENTER);
 
         JButton okBtn = new JButton("Fermer");
@@ -327,6 +439,7 @@ public class VueGraphique extends JFrame implements Observer {
         
         // Carte 1
         CarteGraphique cg1 = new CarteGraphique(c1, false);
+        cg1.setPreferredSize(new Dimension(60, 90)); // Taille standard
         cg1.setSelectionnable(true, () -> {
             clearActionPanel();
             statusLabel.setText("En attente...");
@@ -335,6 +448,7 @@ public class VueGraphique extends JFrame implements Observer {
         
         // Carte 2
         CarteGraphique cg2 = new CarteGraphique(c2, false);
+        cg2.setPreferredSize(new Dimension(60, 90)); // Taille standard
         cg2.setSelectionnable(true, () -> {
             clearActionPanel();
             statusLabel.setText("En attente...");
@@ -365,6 +479,7 @@ public class VueGraphique extends JFrame implements Observer {
         
         if (o.getFaceVisible() != null) {
             CarteGraphique cgVis = new CarteGraphique(o.getFaceVisible(), false);
+            cgVis.setPreferredSize(new Dimension(60, 90)); // Taille standard
             cgVis.setSelectionnable(true, () -> {
                 clearActionPanel();
                 controleur.setInputInt(1); // 1 = Visible
@@ -376,6 +491,7 @@ public class VueGraphique extends JFrame implements Observer {
         
         // Carte Cachée
         CarteGraphique cgCache = new CarteGraphique(null, true);
+        cgCache.setPreferredSize(new Dimension(60, 90)); // Taille standard
         cgCache.setSelectionnable(true, () -> {
             clearActionPanel();
             controleur.setInputInt(2); // 2 = Cachée

@@ -32,7 +32,10 @@ public class Controleur implements InterfaceUtilisateur {
     public Controleur(Partie partie) {
         this.partie = partie;
         this.vueConsole = new VueConsole(); 
-        this.vueGraphique = new VueGraphique(this, partie);
+        this.vueGraphique = new VueGraphique(this, partie); // Auto-registers itself
+        
+        // Register Console as well
+        this.partie.addPropertyChangeListener(this.vueConsole);
         
         // Console Input Thread
         Thread consoleThread = new Thread(this::consoleLoop);

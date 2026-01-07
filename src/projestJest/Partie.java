@@ -4,6 +4,8 @@ import projestJest.Carte.*;
 import projestJest.Joueur.*;
 import projestJest.Variante.*;
 import java.util.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 
 /**
@@ -11,15 +13,25 @@ import java.io.*;
  * Gère le déroulement de la partie, les joueurs, la pioche, les tours et le calcul des scores.
  * Implémente Serializable pour la sauvegarde.
  */
-public class Partie extends java.util.Observable implements Serializable {
+public class Partie implements Serializable {
+
+    // Propriétés pour PropertyChangeEvent
+    public static final String PROP_MESSAGE = "message";
+    public static final String PROP_TROPHEES = "trophees";
+    public static final String PROP_TOUR = "tour";
+    public static final String PROP_OFFRES = "offres";
+    public static final String PROP_FIN_TOUR = "fin_tour";
+    public static final String PROP_RESULTATS = "resultats";
 
     private List<Joueur> joueurs;
     private Pioche pioche;
     private List<Carte> trophees;
     private Variante variante;
     private int tour = 1;
-    private transient InterfaceUtilisateur vue;
+    private transient InterfaceUtilisateur vue; // Pour les inputs synchrones uniquement
     
+    private PropertyChangeSupport diffuseur;
+
     public List<Joueur> getJoueurs() { return joueurs; }
     public List<Carte> getTrophees() { return trophees; }
     private int getTour() { return tour; } 
@@ -33,9 +45,19 @@ public class Partie extends java.util.Observable implements Serializable {
         pioche = new Pioche();
         trophees = new ArrayList<>();
         variante = new VarianteClassique(); 
-        vue = new VueConsole(); 
+        vue = new VueConsole();
+        diffuseur = new PropertyChangeSupport(this);
     }
     
+    // --- Gestion des PropertyChangeListener ---
+    public void addPropertyChangeListener(PropertyChangeListener pcl) {
+        diffuseur.addPropertyChangeListener(pcl);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener pcl) {
+        diffuseur.removePropertyChangeListener(pcl);
+    }
+
     /**
      * Initialise ou restaure la vue après le chargement d'une partie.
      */
@@ -49,6 +71,9 @@ public class Partie extends java.util.Observable implements Serializable {
     public void initVue() {
         if (vue == null) {
             vue = new VueConsole();
+        }
+        if (diffuseur == null) {
+            diffuseur = new PropertyChangeSupport(this);
         }
         if (vue instanceof VueConsole) {
             ((VueConsole) vue).initScanner();
@@ -84,17 +109,18 @@ public class Partie extends java.util.Observable implements Serializable {
      */
     public void demarrer() {
 
-        vue.afficherMessage("=== Nouvelle partie de JEST ===");
-        vue.afficherMessage("Variante utilisée : " + variante.getNom());
+        diffuseur.firePropertyChange(PROP_MESSAGE, null, "=== Nouvelle partie de JEST ===");
+        diffuseur.firePropertyChange(PROP_MESSAGE, null, "Variante utilisée : " + variante.getNom());
 
         int nbJoueurs = joueurs.size();
         int nbTrophees = (nbJoueurs == 3) ? 2 : 1; 
         
         trophees = pioche.piocherTrophees(nbTrophees);
-        vue.afficherTrophees(trophees);
+        // Notification Trophées
+        diffuseur.firePropertyChange(PROP_TROPHEES, null, trophees);
 
         while (pioche.taille() >= joueurs.size()) {
-            vue.afficherTour(tour);
+            diffuseur.firePropertyChange(PROP_TOUR, 0, tour); // old value not relevant really
             jouerUnTour();
             tour++;
             
@@ -116,7 +142,7 @@ public class Partie extends java.util.Observable implements Serializable {
         int choix = vue.demanderChoixInt("\nVoulez-vous sauvegarder et fermer ou continuer ? 1: Sauvegarder et fermer, 0: Continuer sans sauvegarder", 0, 1);
         if (choix == 1) {
             sauvegarderPartie();
-            vue.afficherMessage("Partie sauvegardée. Au revoir !");
+            diffuseur.firePropertyChange(PROP_MESSAGE, null, "Partie sauvegardée. Au revoir !");
             System.exit(0);
         }
     }
@@ -128,7 +154,7 @@ public class Partie extends java.util.Observable implements Serializable {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("sauvegarde.ser"))) {
             oos.writeObject(this);
         } catch (IOException e) {
-            vue.afficherMessage("Erreur lors de la sauvegarde : " + e.getMessage());
+            diffuseur.firePropertyChange(PROP_MESSAGE, null, "Erreur lors de la sauvegarde : " + e.getMessage());
         }
     }
     
@@ -203,7 +229,7 @@ public class Partie extends java.util.Observable implements Serializable {
             j.faireOffre(cs[0], cs[1], vue);
         }
 
-        vue.afficherOffres(joueurs);
+        diffuseur.firePropertyChange(PROP_OFFRES, null, joueurs); // Notify Views
 
         List<Joueur> ordre = determinerOrdrePrise();
         Set<Joueur> dejaJoue = new HashSet<>();
@@ -222,7 +248,7 @@ public class Partie extends java.util.Observable implements Serializable {
             Offre cibleOffre;
 
             if (valides.isEmpty()) {
-                vue.afficherMessage(actif.getNom() + " doit prendre dans sa propre offre.");
+                diffuseur.firePropertyChange(PROP_MESSAGE, null, actif.getNom() + " doit prendre dans sa propre offre.");
                 cibleOffre = actif.getOffre();
             } else {
                 Joueur cible = actif.choisirJoueurCible(valides, vue);
@@ -235,9 +261,8 @@ public class Partie extends java.util.Observable implements Serializable {
             dejaJoue.add(actif);
         }
 
-        vue.afficherFinTour(tour);
-        setChanged();
-        notifyObservers();
+        diffuseur.firePropertyChange(PROP_FIN_TOUR, 0, tour);
+        // setChanged(); notifyObservers(); // REMOVED
     }
 
     /**
@@ -266,7 +291,7 @@ public class Partie extends java.util.Observable implements Serializable {
         
         StringBuilder sb = new StringBuilder("Ordre de prise : ");
         for(Joueur j : ordre) sb.append(j.getNom()).append(" ");
-        vue.afficherMessage("\n" + sb.toString());
+        diffuseur.firePropertyChange(PROP_MESSAGE, null, "\n" + sb.toString());
         
         return ordre;
     }
@@ -285,7 +310,7 @@ public class Partie extends java.util.Observable implements Serializable {
      * Distribue les cartes restantes dans les offres à la fin de la partie.
      */
     private void donnerDernieresCartes() {
-        vue.afficherMessage("\nDistribution des dernières cartes...");
+        diffuseur.firePropertyChange(PROP_MESSAGE, null, "\nDistribution des dernières cartes...");
 
         for (Joueur j : joueurs) {
             Offre o = j.getOffre();
@@ -300,7 +325,7 @@ public class Partie extends java.util.Observable implements Serializable {
     private void attribuerTrophees() {
         if (trophees.isEmpty()) return;
         
-        vue.afficherMessage("\nAttribution des trophées...");
+        diffuseur.firePropertyChange(PROP_MESSAGE, null, "\nAttribution des trophées...");
         Iterator<Carte> it = trophees.iterator();
         
         while (it.hasNext()) {
@@ -335,18 +360,18 @@ public class Partie extends java.util.Observable implements Serializable {
                     }
                     
                     if (joueurCoeurBrisant != null && joueurCoeurBrisant != gagnant) {
-                        vue.afficherMessage("MAIS " + joueurCoeurBrisant.getNom() + " possède le Coeur Brisant et vole le trophée !");
+                        diffuseur.firePropertyChange(PROP_MESSAGE, null, "MAIS " + joueurCoeurBrisant.getNom() + " possède le Coeur Brisant et vole le trophée !");
                         gagnant = joueurCoeurBrisant;
                     }
                     
-                    vue.afficherMessage("Le trophée " + troph + " revient à " + gagnant.getNom());
+                    diffuseur.firePropertyChange(PROP_MESSAGE, null, "Le trophée " + troph + " revient à " + gagnant.getNom());
                     gagnant.ajouterAuJest(troph);
                     it.remove(); 
                 } else {
-                     vue.afficherMessage("Personne ne remporte le trophée " + troph);
+                     diffuseur.firePropertyChange(PROP_MESSAGE, null, "Personne ne remporte le trophée " + troph);
                 }
             } else {
-                 vue.afficherMessage("Trophée spécial non attribué : " + troph);
+                 diffuseur.firePropertyChange(PROP_MESSAGE, null, "Trophée spécial non attribué : " + troph);
             }
         }
     }
@@ -370,13 +395,15 @@ public class Partie extends java.util.Observable implements Serializable {
 
         for (Joueur j : joueurs) {
             int score = j.getJest().calculerScore(variante);
-            j.setScore(score); // Store score for GUI
+            j.setScore(score); 
             if (score > max) {
                 max = score;
                 gagnant = j;
             }
         }
         
-        vue.afficherResultats(joueurs, gagnant, max);
+        // Notification Resultats Finaux
+        // On passe une map ou une liste pour simplifier. La vue affichera le podium.
+        diffuseur.firePropertyChange(PROP_RESULTATS, null, joueurs);
     }
 }
