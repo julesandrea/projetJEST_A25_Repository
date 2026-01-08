@@ -5,54 +5,104 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Calculateur de score implémentant le pattern Visitor.
- * Parcourt les cartes du Jest pour appliquer les règles de score.
+ * La classe CompteurScore implémente l'interface VisiteurScore selon le patron de conception Visiteur.
+ * Elle est responsable du calcul du score final d'un joueur en parcourant l'ensemble de ses cartes (Jest).
+ * 
+ * Le calcul s'effectue en accumulant les points selon les règles de base du jeu et les variantes activées
+ * (ex: As valent 5, Coeurs non négatifs...).
  */
 public class CompteurScore implements VisiteurScore {
 
+    /**
+     * Constructeur par défaut du CompteurScore.
+     */
+    public CompteurScore() {
+    }
+
+    /**
+     * Liste temporaire stockant les cartes de suite visitées pour le calcul.
+     */
     private List<CarteSuite> cartesSuite = new ArrayList<>();
+
+    /**
+     * Liste temporaire stockant les trophées visités.
+     */
     private List<CarteTrophee> trophees = new ArrayList<>();
+
+    /**
+     * Référence vers le Joker s'il est présent dans le Jest.
+     */
     private CarteJoker joker = null;
 
+    /**
+     * Score temporaire accumulé au cours du calcul.
+     */
     private int scoreTemp = 0;
 
+    /**
+     * Indicateur de la variante : si vrai, les As valent 5 points au lieu de 1 s'ils sont uniques dans leur couleur.
+     */
     private boolean asToujours5 = false;
+
+    /**
+     * Indicateur de la variante : si vrai, les Coeurs ne peuvent pas réduire le score (total positif ou nul).
+     */
     private boolean coeursJamaisNegatifs = false;
 
     /**
-     * Active ou désactive la variante "As valent toujours 5".
-     * @param b Vrai pour activer.
+     * Indicateur de présence de la carte Mage (Extension).
+     */
+    private boolean magePresent = false;
+
+    /**
+     * Active ou désactive la règle alternative pour les As.
+     * 
+     * @param b true pour activer la règle (As = 5), false pour la règle standard.
      */
     public void setAsToujours5(boolean b) {
         this.asToujours5 = b;
     }
 
     /**
-     * Active ou désactive la variante "Coeurs jamais négatifs".
-     * @param b Vrai pour activer.
+     * Active ou désactive la règle alternative pour les Coeurs.
+     * 
+     * @param b true pour activer la règle (Coeurs jamais négatifs), false pour la règle standard.
      */
     public void setCoeursJamaisNegatifs(boolean b) {
         this.coeursJamaisNegatifs = b;
     }
 
-
+    @Override
     public void visiter(CarteSuite carte) {
         cartesSuite.add(carte);
     }
 
-
+    @Override
     public void visiter(CarteJoker carte) {
         this.joker = carte;
     }
 
-
+    @Override
     public void visiter(CarteTrophee carte) {
         trophees.add(carte);
     }
 
+    @Override
+    public void visiter(CarteMage carte) {
+        this.magePresent = true;
+        this.scoreTemp += 2; 
+    }
+
+    @Override
+    public void visiter(CarteExtension carte) {
+        
+    }
+
     /**
-     * Calcule le score total en appliquant toutes les règles.
-     * @return Le score final.
+     * Exécute le calcul complet du score en appliquant successivement toutes les règles du jeu.
+     * (Couleurs, As, Joker, Paires Noires, Trophées).
+     * 
+     * @return Le score total final calculé.
      */
     public int getScoreTotal() {
 
@@ -67,6 +117,12 @@ public class CompteurScore implements VisiteurScore {
         return scoreTemp;
     }
 
+    /**
+     * Applique les règles de base liées aux couleurs des cartes.
+     * - Pique et Trèfle : Ajoutent leur valeur faciale.
+     * - Carreau : Retranchent leur valeur faciale.
+     * - Coeur : Ne comptent pas directement ici (traités avec le Joker).
+     */
     private void appliquerReglesCouleurs() {
 
         for (CarteSuite c : cartesSuite) {
@@ -89,6 +145,11 @@ public class CompteurScore implements VisiteurScore {
         }
     }
 
+    /**
+     * Applique les règles spécifiques aux As.
+     * Un As vaut 1 point par défaut, mais peut valoir 5 points s'il est le seul de sa couleur
+     * (ou toujours si la variante est active).
+     */
     private void appliquerReglesAs() {
 
         for (SuiteCarte s : SuiteCarte.values()) {
@@ -121,19 +182,11 @@ public class CompteurScore implements VisiteurScore {
         }
     }
 
-    private boolean magePresent = false;
-
-
-    public void visiter(CarteMage carte) {
-        this.magePresent = true;
-        this.scoreTemp += 2; 
-    }
-
-
-    public void visiter(CarteExtension carte) {
-        
-    }
-
+    /**
+     * Applique les règles liées au Joker (Bestiole).
+     * Le Joker transforme les coeurs en points positifs s'il les possède, ou s'il n'a aucun coeur (+4).
+     * Sinon, les coeurs sont généralement négatifs.
+     */
     private void appliquerReglesJoker() {
 
         if (joker != null && magePresent) {
@@ -186,6 +239,10 @@ public class CompteurScore implements VisiteurScore {
         }
     }
 
+    /**
+     * Applique la règle des paires noires.
+     * Une paire constituée d'une carte noire (Pique/Trèfle) de même rang rapporte un bonus de 2 points.
+     */
     private void appliquerReglesPairesNoires() {
 
         for (ValeurCarte v : new ValeurCarte[]{ValeurCarte.AS, ValeurCarte.DEUX, ValeurCarte.TROIS, ValeurCarte.QUATRE}) {
@@ -206,6 +263,9 @@ public class CompteurScore implements VisiteurScore {
         }
     }
     
+    /**
+     * Applique les règles liées aux trophées et extensions spéciales (ex: Coeur Brisant).
+     */
     private void appliquerReglesTrophees() {
         
         boolean coeurBrisantPresent = false;
@@ -225,8 +285,6 @@ public class CompteurScore implements VisiteurScore {
             
             if (nbAs < 4) {
                 scoreTemp -= 6;
-            } else {
-                
             }
         }
     }

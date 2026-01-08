@@ -3,17 +3,23 @@ package projestJest.Variante;
 import projestJest.*;
 
 /**
- * Variante classique du jeu JEST.
- * Ne modifie pas les règles de base du compteur de score.
+ * Implémentation de la variante classique du jeu JEST.
+ * Cette variante respecte les règles standard sans modification du calcul des scores.
  */
 public class VarianteClassique implements Variante {
 
-    
-    public void appliquerReglesDeScore(CompteurScore compteur) {
-        
+    /**
+     * Constructeur par défaut.
+     */
+    public VarianteClassique() {
     }
 
-    
+    @Override
+    public void appliquerReglesDeScore(CompteurScore compteur) {
+        // Aucune règle spéciale à appliquer pour le classique.
+    }
+
+    @Override
     public String getNom() {
         return "Règles classiques";
     }

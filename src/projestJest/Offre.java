@@ -5,18 +5,28 @@ import projestJest.Carte.*;
 import java.io.Serializable;
 
 /**
- * Représente l'offre d'un joueur, composée d'une carte visible et d'une carte cachée.
+ * La classe Offre représente la main temporaire d'un joueur durant un tour, constituée de deux cartes.
+ * L'une des cartes est exposée face visible (publique) tandis que l'autre reste face cachée (privée).
+ * Les autres joueurs (ou le joueur lui-même) peuvent ensuite choisir de prendre l'une de ces deux cartes.
  */
 public class Offre implements Serializable {
 
+    /**
+     * La carte exposée face visible.
+     */
     private Carte faceVisible;
+
+    /**
+     * La carte gardée face cachée.
+     */
     private Carte faceCachee;
 
     /**
-     * Crée une offre à partir d'une carte visible et d'une carte cachée.
-     * @param faceVisible La carte exposée.
-     * @param faceCachee La carte face cachée.
-     * @throws IllegalArgumentException Si l'une des cartes est nulle.
+     * Construit une nouvelle Offre avec une carte visible et une carte cachée.
+     * 
+     * @param faceVisible La carte à exposer.
+     * @param faceCachee La carte à cacher.
+     * @throws IllegalArgumentException Si l'une des deux cartes est nulle.
      */
     public Offre(Carte faceVisible, Carte faceCachee) {
         if (faceVisible == null || faceCachee == null) {
@@ -27,30 +37,38 @@ public class Offre implements Serializable {
     }
 
     /**
-     * @return Vrai si l'offre contient encore ses deux cartes, faux sinon.
+     * Vérifie si l'offre contient encore ses deux cartes (n'a pas encore été entamée).
+     * 
+     * @return true si les deux cartes sont présentes, false si l'une a été prise.
      */
     public boolean estComplete() {
         return faceVisible != null && faceCachee != null;
     }
 
     /**
-     * @return La carte visible (sans la retirer).
+     * Accesseur pour consulter la carte visible sans la retirer de l'offre.
+     * 
+     * @return La carte visible, ou null si elle a déjà été prise.
      */
     public Carte getFaceVisible() {
         return faceVisible;
     }
 
     /**
-     * @return La carte cachée (sans la retirer).
+     * Accesseur pour consulter la carte cachée sans la retirer de l'offre.
+     * 
+     * @return La carte cachée, ou null si elle a déjà été prise.
      */
     public Carte getFaceCachee() {
         return faceCachee;
     }
 
     /**
-     * Permet de prendre la carte visible.
-     * @return La carte visible qui est retirée de l'offre.
-     * @throws IllegalStateException Si la carte est déjà prise.
+     * Retire et retourne la carte visible de l'offre.
+     * Cette action modifie l'état de l'offre en supprimant la carte.
+     * 
+     * @return La carte qui était visible.
+     * @throws IllegalStateException Si la carte visible a déjà été prise.
      */
     public Carte prendreVisible() {
         if (faceVisible == null) {
@@ -62,9 +80,11 @@ public class Offre implements Serializable {
     }
 
     /**
-     * Permet de prendre la carte cachée.
-     * @return La carte cachée qui est retirée de l'offre.
-     * @throws IllegalStateException Si la carte est déjà prise.
+     * Retire et retourne la carte cachée de l'offre.
+     * Cette action modifie l'état de l'offre en supprimant la carte.
+     * 
+     * @return La carte qui était cachée.
+     * @throws IllegalStateException Si la carte cachée a déjà été prise.
      */
     public Carte prendreCachee() {
         if (faceCachee == null) {
@@ -76,15 +96,16 @@ public class Offre implements Serializable {
     }
 
     /**
-     * Prend une carte de l'offre selon le choix (visible ou cachée).
-     * @param prendreVisible true pour prendre la visible, false pour la cachée.
+     * Méthode utilitaire pour prendre une carte spécifiée par un booléen.
+     * 
+     * @param prendreVisible Si true, tente de prendre la carte visible. Si false, tente de prendre la carte cachée.
      * @return La carte prise.
      */
     public Carte prendre(boolean prendreVisible) {
         return prendreVisible ? prendreVisible() : prendreCachee();
     }
 
-    
+    @Override
     public String toString() {
         String visible = (faceVisible == null ? "X" : faceVisible.toString());
         String cachee  = (faceCachee == null ? "X" : "???");

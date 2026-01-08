@@ -6,21 +6,25 @@ import java.util.List;
 import java.io.Serializable;
 
 /**
- * Interface définissant la stratégie d'un joueur virtuel.
+ * Interface définissant le contrat pour une stratégie de jeu adoptée par un joueur virtuel (Bot).
+ * Le pattern Strategy permet de varier le comportement des bots (Agressif, Défensif, Aléatoire)
+ * sans modifier la classe JoueurVirtuel.
  */
 public interface Strategie extends Serializable {
 
     /** 
-     * Décide si le joueur prend la carte visible ou cachée d'une offre.
-     * @param offre L'offre cible.
-     * @return true pour visible, false pour cachée.
+     * Détermine quelle carte le bot doit prendre dans l'offre qu'il a choisie.
+     * 
+     * @param offre L'offre cible contenant une carte visible et une carte cachée.
+     * @return true pour prendre la carte visible, false pour tenter la chance avec la carte cachée.
      */
     boolean choisirVisibleOuCachee(Offre offre);
 
     /** 
-     * Choisit un joueur cibler parmi les joueurs valides.
-     * @param joueursValides Liste des joueurs dont l'offre est complète.
-     * @return Le joueur choisi.
+     * Choisit quel joueur cibler pour voler une carte parmi les adversaires disponibles.
+     * 
+     * @param joueursValides La liste des joueurs possédant une offre valide (non vide).
+     * @return Le joueur sélectionné comme cible.
      */
     Joueur choisirOffre(List<Joueur> joueursValides);
 }

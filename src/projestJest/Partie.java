@@ -9,36 +9,102 @@ import java.beans.PropertyChangeSupport;
 import java.io.*;
 
 /**
- * Classe centrale du jeu JEST. 
- * Gère le déroulement de la partie, les joueurs, la pioche, les tours et le calcul des scores.
- * Implémente Serializable pour la sauvegarde.
+ * La classe Partie représente le cœur du modèle du jeu JEST.
+ * Elle gère l'état global du jeu, incluant les joueurs, la pioche, les trophées, le déroulement des tours
+ * et l'application des règles via les variantes.
+ * 
+ * Cette classe implémente Serializable pour permettre la sauvegarde et le chargement de l'état du jeu.
+ * Elle utilise également PropertyChangeSupport pour notifier les observateurs (comme le Contrôleur) des changements d'état.
  */
 public class Partie implements Serializable {
 
-    // Propriétés pour PropertyChangeEvent
+    /**
+     * Nom de la propriété notifiant un message textuel à afficher.
+     */
     public static final String PROP_MESSAGE = "message";
+
+    /**
+     * Nom de la propriété notifiant la mise à jour de la liste des trophées.
+     */
     public static final String PROP_TROPHEES = "trophees";
+
+    /**
+     * Nom de la propriété notifiant le changement de tour.
+     */
     public static final String PROP_TOUR = "tour";
+
+    /**
+     * Nom de la propriété notifiant la mise à jour des offres des joueurs.
+     */
     public static final String PROP_OFFRES = "offres";
+
+    /**
+     * Nom de la propriété notifiant la fin d'un tour.
+     */
     public static final String PROP_FIN_TOUR = "fin_tour";
+
+    /**
+     * Nom de la propriété notifiant les résultats finaux de la partie.
+     */
     public static final String PROP_RESULTATS = "resultats";
 
+    /**
+     * Liste des joueurs participant à la partie.
+     */
     private List<Joueur> joueurs;
+
+    /**
+     * La pioche contenant les cartes non distribuées.
+     */
     private Pioche pioche;
+
+    /**
+     * Liste des cartes trophées mises en jeu commun.
+     */
     private List<Carte> trophees;
+
+    /**
+     * La variante de règles appliquée pour cette partie.
+     */
     private Variante variante;
+
+    /**
+     * Compteur du nombre de tours joués.
+     */
     private int tour = 1;
-    private transient InterfaceUtilisateur vue; // Pour les inputs synchrones uniquement
+
+    /**
+     * Référence vers la vue utilisée pour les interactions synchrones (choix utilisateur).
+     * Marqué transient car la vue n'est pas sérialisée avec le modèle.
+     */
+    private transient InterfaceUtilisateur vue; 
     
+    /**
+     * Support pour la gestion des écouteurs de changements de propriétés.
+     */
     private PropertyChangeSupport diffuseur;
 
+    /**
+     * Retourne la liste des joueurs.
+     * @return La liste modifiable des joueurs.
+     */
     public List<Joueur> getJoueurs() { return joueurs; }
+
+    /**
+     * Retourne la liste des trophées.
+     * @return La liste modifiable des trophées en jeu.
+     */
     public List<Carte> getTrophees() { return trophees; }
+
+    /**
+     * Retourne le numéro du tour.
+     * @return Le numéro du tour actuel.
+     */
     private int getTour() { return tour; } 
 
     /**
-     * Constructeur de la Partie.
-     * Initialise les listes et la vue par défaut.
+     * Constructeur par défaut de la Partie.
+     * Initialise les collections, la pioche, la variante classique et une vue console par défaut.
      */
     public Partie() {
         joueurs = new ArrayList<>();
@@ -49,24 +115,36 @@ public class Partie implements Serializable {
         diffuseur = new PropertyChangeSupport(this);
     }
     
-    // --- Gestion des PropertyChangeListener ---
+    /**
+     * Ajoute un écouteur de changement de propriété.
+     * 
+     * @param pcl L'écouteur à ajouter.
+     */
     public void addPropertyChangeListener(PropertyChangeListener pcl) {
         diffuseur.addPropertyChangeListener(pcl);
     }
 
+    /**
+     * Retire un écouteur de changement de propriété.
+     * 
+     * @param pcl L'écouteur à retirer.
+     */
     public void removePropertyChangeListener(PropertyChangeListener pcl) {
         diffuseur.removePropertyChangeListener(pcl);
     }
 
     /**
-     * Initialise ou restaure la vue après le chargement d'une partie.
+     * Définit la vue à utiliser pour les interactions utilisateur.
+     * 
+     * @param vue L'instance de l'interface utilisateur.
      */
     public void setVue(InterfaceUtilisateur vue) {
         this.vue = vue;
     }
 
     /**
-     * Initialise ou restaure la vue après le chargement d'une partie.
+     * Initialise ou restaure les composants non sérialisés après un chargement.
+     * Recrée la vue par défaut et le support de propriétés si nécessaire.
      */
     public void initVue() {
         if (vue == null) {
@@ -81,7 +159,8 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Ajoute un joueur à la partie.
+     * Ajoute un nouveau joueur à la partie.
+     * 
      * @param j Le joueur à ajouter.
      */
     public void ajouterJoueur(Joueur j) {
@@ -89,15 +168,16 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Définit la variante utilisée pour la partie.
-     * @param v La variante à utiliser.
+     * Définit la variante de règles à utiliser.
+     * 
+     * @param v La nouvelle variante.
      */
     public void setVariante(Variante v) {
         this.variante = v;
     }
     
     /**
-     * Active les cartes d'extension dans la pioche.
+     * Active l'ajout des cartes d'extension dans la pioche.
      */
     public void activerExtensions() {
         pioche.ajouterExtensions();
@@ -105,7 +185,8 @@ public class Partie implements Serializable {
 
     /**
      * Lance la boucle principale du jeu.
-     * Gère l'initialisation, les tours de jeu et la fin de partie.
+     * Cette méthode orchestre l'ensemble de la partie : initialisation, gestion des tours tant que la pioche le permet,
+     * distribution finale, attribution des trophées et annonce du vainqueur.
      */
     public void demarrer() {
 
@@ -116,11 +197,11 @@ public class Partie implements Serializable {
         int nbTrophees = (nbJoueurs == 3) ? 2 : 1; 
         
         trophees = pioche.piocherTrophees(nbTrophees);
-        // Notification Trophées
+        
         diffuseur.firePropertyChange(PROP_TROPHEES, null, trophees);
 
         while (pioche.taille() >= joueurs.size()) {
-            diffuseur.firePropertyChange(PROP_TOUR, 0, tour); // old value not relevant really
+            diffuseur.firePropertyChange(PROP_TOUR, 0, tour); 
             jouerUnTour();
             tour++;
             
@@ -136,7 +217,8 @@ public class Partie implements Serializable {
     }
     
     /**
-     * Demande à l'utilisateur s'il souhaite sauvegarder la partie courante.
+     * Propose à l'utilisateur de sauvegarder la partie en cours.
+     * Si l'utilisateur accepte, la partie est sauvegardée et l'application se ferme.
      */
     private void proposerSauvegarde() {
         int choix = vue.demanderChoixInt("\nVoulez-vous sauvegarder et fermer ou continuer ? 1: Sauvegarder et fermer, 0: Continuer sans sauvegarder", 0, 1);
@@ -148,7 +230,7 @@ public class Partie implements Serializable {
     }
     
     /**
-     * Sauvegarde l'état actuel de la partie dans un fichier.
+     * Sauvegarde l'état actuel de l'objet Partie dans un fichier via sérialisation.
      */
     public void sauvegarderPartie() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("sauvegarde.ser"))) {
@@ -159,8 +241,9 @@ public class Partie implements Serializable {
     }
     
     /**
-     * Charge une partie depuis un fichier de sauvegarde.
-     * @return L'objet Partie chargé, ou null en cas d'erreur.
+     * Charge une partie précédemment sauvegardée depuis le fichier de sauvegarde.
+     * 
+     * @return L'instance de Partie restaurée, ou null si le chargement échoue.
      */
     public static Partie chargerPartie() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("sauvegarde.ser"))) {
@@ -174,8 +257,11 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Distribue les cartes aux joueurs selon les règles du tour actuel.
-     * @return Une Map associant chaque joueur à ses deux cartes distribuées.
+     * Distribue deux cartes à chaque joueur depuis la pioche.
+     * Au premier tour, les cartes viennent directement de la pioche.
+     * Aux tours suivants, les cartes restantes des offres précédentes sont mélangées à la pioche avant reditribution.
+     * 
+     * @return Une map associant chaque joueur à un tableau de deux cartes distribuées.
      */
     private Map<Joueur, Carte[]> distribuerCartes() {
 
@@ -216,7 +302,8 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Exécute un tour complet de jeu (Offres, Prises).
+     * Exécute la logique d'un tour de jeu complet.
+     * Inclut la distribution, la phase d'offre par chaque joueur, et la phase de prise de cartes.
      */
     private void jouerUnTour() {
 
@@ -229,7 +316,7 @@ public class Partie implements Serializable {
             j.faireOffre(cs[0], cs[1], vue);
         }
 
-        diffuseur.firePropertyChange(PROP_OFFRES, null, joueurs); // Notify Views
+        diffuseur.firePropertyChange(PROP_OFFRES, null, joueurs); 
 
         List<Joueur> ordre = determinerOrdrePrise();
         Set<Joueur> dejaJoue = new HashSet<>();
@@ -262,13 +349,14 @@ public class Partie implements Serializable {
         }
 
         diffuseur.firePropertyChange(PROP_FIN_TOUR, 0, tour);
-        // setChanged(); notifyObservers(); // REMOVED
     }
 
     /**
-     * Détermine l'ordre dans lequel les joueurs choisissent une carte.
-     * Basé sur la valeur de la carte visible de leur offre.
-     * @return Liste ordonnée des joueurs.
+     * Calcule l'ordre de prise des joueurs pour le tour en cours.
+     * L'ordre est déterminé par la valeur faciale de la carte visible de l'offre (plus haute valeur commence),
+     * puis par la force de la couleur en cas d'égalité.
+     * 
+     * @return La liste des joueurs triée selon l'ordre de prise.
      */
     private List<Joueur> determinerOrdrePrise() {
 
@@ -297,7 +385,11 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Trouve le prochain joueur dans l'ordre qui n'a pas encore joué.
+     * Identifie le prochain joueur devant jouer dans la liste ordonnée, en ignorant ceux ayant déjà joué.
+     * 
+     * @param ordre La liste ordonnée des joueurs pour ce tour.
+     * @param dejaJoue L'ensemble des joueurs ayant déjà effectué leur prise.
+     * @return Le prochain joueur actif, ou null si tous ont joué.
      */
     private Joueur trouverProchainJoueur(List<Joueur> ordre, Set<Joueur> dejaJoue) {
         for (Joueur j : ordre)
@@ -307,7 +399,7 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Distribue les cartes restantes dans les offres à la fin de la partie.
+     * Distribue automatiquement les cartes restées dans les offres à la fin de la partie vers les Jests respectifs des joueurs.
      */
     private void donnerDernieresCartes() {
         diffuseur.firePropertyChange(PROP_MESSAGE, null, "\nDistribution des dernières cartes...");
@@ -320,7 +412,8 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Attribue les trophées aux joueurs selon les règles.
+     * Analyse les Jests finaux pour attribuer les trophées aux joueurs remplissant les conditions.
+     * Gère les conditions spéciales comme le vol de trophée par le "Coeur Brisant" (Joker).
      */
     private void attribuerTrophees() {
         if (trophees.isEmpty()) return;
@@ -377,7 +470,7 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Calcule et affiche les scores finaux.
+     * Déclenche le calcul des scores finaux pour tous les joueurs en fonction de la variante active.
      */
     private void afficherScores() {
         for (Joueur j : joueurs) {
@@ -386,7 +479,8 @@ public class Partie implements Serializable {
     }
 
     /**
-     * Détermine et affiche le vainqueur de la partie.
+     * Détermine le vainqueur de la partie en comparant les scores finaux.
+     * Notifie les résultats pour affichage.
      */
     private void afficherVainqueur() {
 
@@ -402,8 +496,6 @@ public class Partie implements Serializable {
             }
         }
         
-        // Notification Resultats Finaux
-        // On passe une map ou une liste pour simplifier. La vue affichera le podium.
         diffuseur.firePropertyChange(PROP_RESULTATS, null, joueurs);
     }
 }

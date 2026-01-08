@@ -8,49 +8,85 @@ import javax.swing.*;
 import projestJest.Carte.Carte;
 import projestJest.Joueur.Joueur;
 
-public class VueGraphique extends JFrame implements PropertyChangeListener {
+/**
+ * La classe VueGraphique représente l'interface graphique du jeu JEST, implémentée avec Swing.
+ * Elle se charge d'afficher l'état actuel de la partie (joueurs, cartes, tapis, trophées) et de
+ * recueillir les interactions de l'utilisateur (clics sur les cartes, boutons, saisie de texte).
+ * 
+ * Cette vue est passive d'un point de vue logique : elle reçoit les ordres d'affichage du contrôleur
+ * et lui transmet les événements utilisateurs pour traitement.
+ */
+public class VueGraphique extends JFrame {
 
+    /**
+     * Référence vers le contrôleur pour transmettre les interactions utilisateur.
+     */
     private Controleur controleur;
-    private Partie partie;
-    
-    private JPanel centerPanel; // Le tapis de jeu
-    private JPanel southContainer; // Conteneur Sud (Trophées + Actions)
+
+    /**
+     * Panneau central affichant le tapis de jeu avec les joueurs, leurs offres et leurs JESTs.
+     */
+    private JPanel centerPanel;
+
+    /**
+     * Conteneur situé au sud de la fenêtre regroupant la zone des trophées et les composants d'action.
+     */
+    private JPanel southContainer;
+
+    /**
+     * Panneau dynamique affichant les boutons ou champs de saisie pour l'interaction utilisateur.
+     */
     private JPanel actionPanel; 
-    private JPanel trophyPanel; // Footer Trophées
+
+    /**
+     * Panneau affichant les trophées disponibles en jeu.
+     */
+    private JPanel trophyPanel;
+
+    /**
+     * Étiquette située en haut de la fenêtre affichant l'instruction courante ou l'état du jeu.
+     */
     private JLabel statusLabel;
     
-    // Pour le récapitulatif final
+    /**
+     * Liste des trophées en jeu, conservée pour l'affichage final des résultats.
+     */
     private List<Carte> listTrophees;
+    
+    /**
+     * Variable temporaire stockant la présélection (clic sur une carte) lors de la phase de vol.
+     */
+    private Integer choixCartePreselectionne = null;
 
-    public VueGraphique(Controleur controleur, Partie partie) {
-        this.controleur = controleur;
-        this.partie = partie;
-        partie.addPropertyChangeListener(this); 
+    /**
+     * Constructeur de la VueGraphique.
+     * Initialise la fenêtre principale, ses composants graphiques et sa mise en page.
+     * 
+     * @param controleur Le contrôleur associé à cette vue.
+     */
+    public VueGraphique(Controleur controleur) {
+        this.controleur = controleur; 
         
         setTitle("JEST - Interface Graphique");
-        setSize(1200, 900); // Retour taille standard (hauteur gardée pour trophées)
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // --- TOP : Status ---
         statusLabel = new JLabel("En attente...");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 20));
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setBorder(BorderFactory.createEmptyBorder(10,0,10,0));
         add(statusLabel, BorderLayout.NORTH);
         
-        // --- CENTER : Table de jeu ---
         centerPanel = new JPanel();
         centerPanel.setLayout(new GridLayout(0, 1, 10, 10)); 
         centerPanel.setBackground(new Color(34, 139, 34)); 
         JScrollPane scrollPane = new JScrollPane(centerPanel);
         add(scrollPane, BorderLayout.CENTER);
         
-        // --- SOUTH : Container ---
         southContainer = new JPanel();
         southContainer.setLayout(new BoxLayout(southContainer, BoxLayout.Y_AXIS));
         
-        // 1. Trophées (Bas de page) - Plus grand
         trophyPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         trophyPanel.setBackground(new Color(20, 80, 20));
         trophyPanel.setBorder(BorderFactory.createTitledBorder(
@@ -58,55 +94,36 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
             0, 0, new Font("Arial", Font.BOLD, 12), new Color(255, 215, 0)));
         southContainer.add(trophyPanel);
         
-        // 2. Actions (Taille réduite pour visibilité du plateau)
         actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10)); 
-        actionPanel.setPreferredSize(new Dimension(1200, 110)); // Réduit à 110px
+        actionPanel.setPreferredSize(new Dimension(1200, 110)); 
         actionPanel.setBackground(Color.DARK_GRAY);
         southContainer.add(actionPanel);
         
         add(southContainer, BorderLayout.SOUTH);
     }
     
-    // --- PropertyChangeListener Implementation ---
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        switch (evt.getPropertyName()) {
-            case Partie.PROP_MESSAGE:
-                afficherMessage((String) evt.getNewValue());
-                break;
-            case Partie.PROP_TROPHEES:
-                afficherTrophees((List<Carte>) evt.getNewValue());
-                break;
-            case Partie.PROP_TOUR:
-                afficherTour((Integer) evt.getNewValue());
-                break;
-            case Partie.PROP_OFFRES:
-                afficherOffres((List<Joueur>) evt.getNewValue());
-                break;
-            case Partie.PROP_FIN_TOUR:
-                afficherFinTour((Integer) evt.getNewValue());
-                break;
-            case Partie.PROP_RESULTATS:
-                afficherResultats((List<Joueur>) evt.getNewValue(), null, 0);
-                break;
-        }
-    }
-    
+    /**
+     * Met à jour la référence vers l'instance de la partie.
+     * Cette méthode est maintenue pour compatibilité mais la vue ne devrait plus dépendre directement de l'état interne de la partie.
+     * 
+     * @param p L'instance de la partie (non utilisée directement pour l'affichage désormais).
+     */
     public void setPartie(Partie p) {
-        this.partie = p;
-        if (p != null) p.addPropertyChangeListener(this);
+        
     }
 
-    // Redessine tout le plateau (Modèle -> Vue)
-    public void mettreAJour() {
+    /**
+     * Redessine entièrement le tapis de jeu (zone centrale) en fonction de l'état actuel des joueurs.
+     * Affiche pour chaque joueur son offre (cartes visibles/cachées) et son Jest (cartes capturées).
+     * 
+     * @param joueurs La liste des joueurs avec leur état actuel.
+     */
+    public void mettreAJour(List<Joueur> joueurs) {
         centerPanel.removeAll();
         
-        if (partie == null) return;
-        List<Joueur> joueurs = partie.getJoueurs();
         if (joueurs != null) {
             
-            // Adapter le grid layout selon le nombre de joueurs
             int rows = (joueurs.size() > 2) ? 2 : joueurs.size();
             int cols = (joueurs.size() > 2) ? 2 : 1;
             centerPanel.setLayout(new GridLayout(rows, cols, 10, 10));
@@ -119,9 +136,8 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                         0, 0, 
                         new Font("Arial", Font.BOLD, 14), 
                         Color.WHITE));
-                playerPanel.setBackground(new Color(34, 100, 34)); // Vert un peu plus sombre
+                playerPanel.setBackground(new Color(34, 100, 34)); 
 
-                // -- Zone Offre (Haut du Panel Joueur) --
                 JPanel offerPanel = new JPanel(new FlowLayout());
                 offerPanel.setOpaque(false);
                 offerPanel.add(new JLabel("Offre: "));
@@ -129,7 +145,7 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 if (j.getOffre() != null) {
                     if (j.getOffre().getFaceVisible() != null) {
                         CarteGraphique cg = new CarteGraphique(j.getOffre().getFaceVisible(), false);
-                        cg.setPreferredSize(new Dimension(60, 90)); // Plus petit pour le plateau
+                        cg.setPreferredSize(new Dimension(60, 90)); 
                         offerPanel.add(cg);
                     }
                     if (j.getOffre().getFaceCachee() != null) {
@@ -144,14 +160,13 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 }
                 playerPanel.add(offerPanel, BorderLayout.NORTH);
                 
-                // -- Zone Jest (Centre/Bas du Panel Joueur) --
                 JPanel jestPanel = new JPanel(new FlowLayout());
                 jestPanel.setOpaque(false);
                 jestPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "Jest", 0,0,null, Color.WHITE));
                 
                 for (Carte c : j.getJest().getCartes()) {
                     CarteGraphique cg = new CarteGraphique(c, false);
-                    cg.setPreferredSize(new Dimension(50, 75)); // Encore plus petit pour le Jest
+                    cg.setPreferredSize(new Dimension(50, 75)); 
                     jestPanel.add(cg);
                 }
                 
@@ -163,37 +178,41 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         centerPanel.revalidate();
         centerPanel.repaint();
     }
-
-    // --- Inputs Methods called by Controleur ---
     
-    // Etat pour la présélection (Clic sur table -> Joueur + Choix Carte)
-    private Integer choixCartePreselectionne = null;
-
-    // --- Inputs Methods called by Controleur ---
-    
+    /**
+     * Nettoie le panneau d'action pour préparer l'affichage de nouveaux boutons ou champs.
+     */
     private void clearActionPanel() {
         actionPanel.removeAll();
         actionPanel.revalidate();
         actionPanel.repaint();
     }
 
+    /**
+     * Affiche un message d'information dans la console (log GUI) et ouvre une boîte de dialogue si nécessaire.
+     * 
+     * @param msg Le message à afficher.
+     */
     public void afficherMessage(String msg) {
-        // Envoi console simple car le log graphique a été retiré sur demande
         System.out.println("[GUI Message] " + msg);
         
-        // Popup pour Vainqueur Final uniquement (facultatif)
         if (msg.contains("vainqueur")) {
             JOptionPane.showMessageDialog(this, msg, "Fin de Partie", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
+    /**
+     * Met à jour l'affichage de la zone des trophées en bas de la fenêtre.
+     * 
+     * @param trophees La liste des cartes trophées actuellement en jeu.
+     */
     public void afficherTrophees(java.util.List<Carte> trophees) {
-        this.listTrophees = new java.util.ArrayList<>(trophees); // Copie défensive !
+        this.listTrophees = new java.util.ArrayList<>(trophees);
         if (trophyPanel != null) {
             trophyPanel.removeAll();
             for (Carte c : trophees) {
                 CarteGraphique cg = new CarteGraphique(c, false);
-                cg.setPreferredSize(new Dimension(60, 90)); // Taille réduite
+                cg.setPreferredSize(new Dimension(60, 90)); 
                 trophyPanel.add(cg);
             }
             trophyPanel.revalidate();
@@ -201,18 +220,19 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         }
     }
 
-    public void afficherResultats(java.util.List<Joueur> joueurs, Joueur vainqueur, int scoreMax) {
+    /**
+     * Affiche une fenêtre de dialogue modale présentant les résultats finaux de la partie (Podium).
+     * Détaille le classement, les scores, les Jests finaux et l'attribution des trophées.
+     * 
+     * @param joueurs La liste des joueurs.
+     * @param trophees La liste des trophées pour déterminer qui a gagné quoi.
+     */
+    public void afficherResultats(java.util.List<Joueur> joueurs, java.util.List<Carte> trophees) {
         joueurs.sort((j1, j2) -> Integer.compare(j2.getScore(), j1.getScore()));
 
-        // Fallback si la liste des trophées n'a pas été capturée via l'événement
-        if (listTrophees == null || listTrophees.isEmpty()) {
-            if (partie != null) {
-                listTrophees = partie.getTrophees();
-            }
-        }
+        this.listTrophees = (trophees != null) ? new java.util.ArrayList<>(trophees) : new java.util.ArrayList<>();
 
         JDialog podium = new JDialog(this, "Podium - Résultats Finaux", true);
-        // Fullscreen
         podium.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         podium.setLayout(new BorderLayout());
 
@@ -226,38 +246,32 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         title.setBorder(BorderFactory.createEmptyBorder(20,0,20,0));
         podium.add(title, BorderLayout.NORTH);
 
-        // --- RECAP TROPHEES ---
         JPanel recapPanel = new JPanel();
-        recapPanel.setLayout(new BorderLayout()); // Changement layout global recap
+        recapPanel.setLayout(new BorderLayout()); 
         recapPanel.setBackground(new Color(20, 80, 20)); 
         recapPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(Color.CYAN), "Qui a gagné quoi ?",
             0, 0, new Font("Arial", Font.BOLD, 14), Color.CYAN));
         
-        // Conteneur horizontal pour les trophées
         JPanel trophiesRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 10));
         trophiesRow.setOpaque(false);
 
         if (listTrophees != null && !listTrophees.isEmpty()) {
             for (Carte t : listTrophees) {
-                // Panel individuel pour chaque trophée (Carte + Texte)
                 JPanel trophyItem = new JPanel(new FlowLayout(FlowLayout.LEFT));
                 trophyItem.setOpaque(false);
-                trophyItem.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 50), 1)); // Léger cadre
+                trophyItem.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 50), 1)); 
                 
-                // Carte
                 CarteGraphique cg = new CarteGraphique(t, false);
                 cg.setPreferredSize(new Dimension(60, 90));
                 trophyItem.add(cg);
                 
-                // Gagnant ?
                 String winnerName = "Personne";
                 String condition = ""; 
                 if (t instanceof projestJest.Carte.CarteTrophee) {
                     condition = " <i>(" + ((projestJest.Carte.CarteTrophee) t).getCondition() + ")</i>";
                 }
                 
-                // Recherche du possesseur
                 for (Joueur j : joueurs) {
                     if (j.getJest().getCartes().stream().anyMatch(c -> c.toString().equals(t.toString()))) {
                         winnerName = j.getNom();
@@ -294,20 +308,18 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10),
                 BorderFactory.createLineBorder(Color.WHITE, 2)
             ));
-            pPanel.setBackground(new Color(34, 100, 34)); // Dark Green
+            pPanel.setBackground(new Color(34, 100, 34)); 
             
-            // Header: Rank - Name - Score
             JLabel lbl = new JLabel("  #" + rank + "  " + j.getNom() + " : " + j.getScore() + " points");
             lbl.setForeground(Color.WHITE);
             lbl.setFont(new Font("Arial", Font.BOLD, 18));
             pPanel.add(lbl, BorderLayout.NORTH);
             
-            // Jest Cards
             JPanel cardPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             cardPanel.setOpaque(false);
             for (Carte c : j.getJest().getCartes()) {
                  CarteGraphique cg = new CarteGraphique(c, false);
-                 cg.setPreferredSize(new Dimension(60, 90)); // Taille standardisée
+                 cg.setPreferredSize(new Dimension(60, 90)); 
                  cardPanel.add(cg);
             }
             pPanel.add(cardPanel, BorderLayout.CENTER);
@@ -327,62 +339,84 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         podium.setVisible(true);
     }
 
-    public void afficherTour(int numTour) {
+    /**
+     * Met à jour l'affichage pour indiquer le tour courant.
+     * 
+     * @param numTour Le numéro du tour.
+     * @param joueurs La liste des joueurs pour rafraîchir le plateau.
+     */
+    public void afficherTour(int numTour, List<Joueur> joueurs) {
         statusLabel.setText("Tour " + numTour);
-        mettreAJour(); 
+        mettreAJour(joueurs); 
     }
 
+    /**
+     * Met à jour l'affichage des offres des joueurs.
+     * 
+     * @param joueurs La liste des joueurs avec leurs offres actualisées.
+     */
     public void afficherOffres(java.util.List<Joueur> joueurs) {
-        mettreAJour(); 
+        mettreAJour(joueurs); 
     }
 
-    public void afficherFinTour(int numTour) {
-        mettreAJour(); 
+    /**
+     * Met à jour l'affichage pour signaler la fin d'un tour.
+     * 
+     * @param numTour Le numéro du tour qui se termine.
+     * @param joueurs La liste des joueurs.
+     */
+    public void afficherFinTour(int numTour, List<Joueur> joueurs) {
+        mettreAJour(joueurs); 
     }
-
-    // Parse options like "1-Option" or "1:Option"
+    
+    /**
+     * Extrait une étiquette textuelle lisible à partir d'une question formatée.
+     * Gère les formats comme "1-Option" ou "1:Option".
+     * 
+     * @param question La question contenant les options.
+     * @param value La valeur numérique associée au bouton.
+     * @return Le libellé du bouton.
+     */
     private String extractLabel(String question, int value) {
         String[] parts = question.split(",");
         for (String p : parts) {
             p = p.trim();
-            // Check for "value-" or "value:" or "value -"
-            // We search for the number followed by separator
             String valStr = String.valueOf(value);
             int valIdx = p.indexOf(valStr);
             
             while (valIdx != -1) {
-                // Verify it's a whole word number (not 11 for 1)
                 boolean startBound = (valIdx == 0) || !Character.isDigit(p.charAt(valIdx - 1));
                 if (startBound) {
-                    // Check what follows
                     int afterValIdx = valIdx + valStr.length();
-                    // Skip spaces
                     while (afterValIdx < p.length() && p.charAt(afterValIdx) == ' ') afterValIdx++;
                     
                     if (afterValIdx < p.length()) {
                         char c = p.charAt(afterValIdx);
                         if (c == '-' || c == ':') {
-                            // Found separator. extract potential label
                             String potential = p.substring(afterValIdx + 1).trim();
-                            // Fix: if potential label starts with digit, it's likely a range (0-4), not a label
                             if (!potential.isEmpty() && !Character.isDigit(potential.charAt(0))) {
                                 return potential;
                             }
                         }
                     }
                 }
-                // Search next occurrence
                 valIdx = p.indexOf(valStr, valIdx + 1);
             }
         }
-        return String.valueOf(value); // Fallback
+        return String.valueOf(value); 
     }
 
+    /**
+     * Affiche une demande de choix numérique à l'utilisateur sous forme de boutons.
+     * 
+     * @param question La question à poser.
+     * @param min La valeur minimale autorisée.
+     * @param max La valeur maximale autorisée.
+     */
     public void demanderChoixInt(String question, int min, int max) {
         clearActionPanel();
-        statusLabel.setText(question.split("[:]")[0]); // Titre court si possible
+        statusLabel.setText(question.split("[:]")[0]); 
         
-        // Parsing des labels si présents dans la question
         if (question.contains(min + "-") || question.contains(min + ":")) {
             for (int i = min; i <= max; i++) {
                 final int val = i;
@@ -392,7 +426,6 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 actionPanel.add(btn);
             }
         } else {
-            // Cas spécial Sauvegarde (0-1) Hardcodé si parsing echoue ou format specifique
              if (min == 0 && max == 1) {
                 JButton btnContinuer = new JButton("Continuer");
                 JButton btnSauvegarder = new JButton("Sauvegarder");
@@ -401,7 +434,6 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 actionPanel.add(btnContinuer);
                 actionPanel.add(btnSauvegarder);
             } else {
-                // Fallback number buttons
                 for (int i = min; i <= max; i++) {
                     final int val = i;
                     JButton btn = new JButton(String.valueOf(val));
@@ -415,6 +447,11 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         actionPanel.repaint();
     }
 
+    /**
+     * Affiche un champ de texte pour demander une chaîne de caractères à l'utilisateur.
+     * 
+     * @param question La question à poser.
+     */
     public void demanderChaine(String question) {
         clearActionPanel();
         statusLabel.setText(question);
@@ -433,22 +470,27 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         actionPanel.repaint();
     }
 
+    /**
+     * Affiche l'interface permettant à un joueur de choisir quelle carte de son offre restera visible.
+     * 
+     * @param j Le joueur concerné.
+     * @param c1 La première carte de l'offre.
+     * @param c2 La seconde carte de l'offre.
+     */
     public void demanderChoixOffre(Joueur j, Carte c1, Carte c2) {
         clearActionPanel();
         statusLabel.setText(j.getNom() + " : Cliquez sur la carte à garder VISIBLE");
         
-        // Carte 1
         CarteGraphique cg1 = new CarteGraphique(c1, false);
-        cg1.setPreferredSize(new Dimension(60, 90)); // Taille standard
+        cg1.setPreferredSize(new Dimension(60, 90)); 
         cg1.setSelectionnable(true, () -> {
             clearActionPanel();
             statusLabel.setText("En attente...");
             controleur.setInputInt(1);
         });
         
-        // Carte 2
         CarteGraphique cg2 = new CarteGraphique(c2, false);
-        cg2.setPreferredSize(new Dimension(60, 90)); // Taille standard
+        cg2.setPreferredSize(new Dimension(60, 90)); 
         cg2.setSelectionnable(true, () -> {
             clearActionPanel();
             statusLabel.setText("En attente...");
@@ -463,13 +505,17 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         actionPanel.repaint();
     }
 
+    /**
+     * Affiche l'interface permettant à un joueur de choisir quelle carte prendre dans l'offre d'un autre joueur.
+     * 
+     * @param j Le joueur qui doit choisir.
+     * @param o L'offre cible contenant une carte visible et une carte cachée.
+     */
     public void demanderChoixPrise(Joueur j, projestJest.Offre o) {
-        // SI on a une présélection (clic sur table), on l'utilise directement !
         if (choixCartePreselectionne != null) {
             int choix = choixCartePreselectionne;
-            choixCartePreselectionne = null; // reset
+            choixCartePreselectionne = null; 
             
-            // On le fait dans un thread swing utilities invokeLater pour laisser le temps au redraw si besoin
             SwingUtilities.invokeLater(() -> controleur.setInputInt(choix));
             return; 
         }
@@ -479,22 +525,21 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         
         if (o.getFaceVisible() != null) {
             CarteGraphique cgVis = new CarteGraphique(o.getFaceVisible(), false);
-            cgVis.setPreferredSize(new Dimension(60, 90)); // Taille standard
+            cgVis.setPreferredSize(new Dimension(60, 90)); 
             cgVis.setSelectionnable(true, () -> {
                 clearActionPanel();
-                controleur.setInputInt(1); // 1 = Visible
+                controleur.setInputInt(1); 
             });
             actionPanel.add(cgVis);
         }
         
         actionPanel.add(Box.createHorizontalStrut(50));
         
-        // Carte Cachée
         CarteGraphique cgCache = new CarteGraphique(null, true);
-        cgCache.setPreferredSize(new Dimension(60, 90)); // Taille standard
+        cgCache.setPreferredSize(new Dimension(60, 90)); 
         cgCache.setSelectionnable(true, () -> {
             clearActionPanel();
-            controleur.setInputInt(2); // 2 = Cachée
+            controleur.setInputInt(2); 
         });
         actionPanel.add(cgCache);
         
@@ -502,22 +547,32 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
         actionPanel.repaint();
     }
     
-    public void demanderChoixAdversaire(Joueur j, List<Joueur> adversaires) {
+    /**
+     * Affiche l'interface permettant à un joueur de choisir un adversaire cible pour le vol de carte.
+     * Rend les cartes sur le tapis cliquables pour une interaction directe.
+     * 
+     * @param j Le joueur qui doit choisir.
+     * @param adversaires La liste des adversaires valides.
+     * @param tousLesJoueurs La liste complète des joueurs pour le réaffichage interactif du plateau.
+     */
+    public void demanderChoixAdversaire(Joueur j, List<Joueur> adversaires, List<Joueur> tousLesJoueurs) {
         clearActionPanel();
         statusLabel.setText(j.getNom() + " : Cliquez sur une carte adverse sur le tapis pour la voler !");
         choixCartePreselectionne = null;
         
-        // On doit rendre les cartes du plateau cliquables.
-        // Pour cela, on reconstruit le plateau avec mode interactif
-        mettreAJourInteractif(adversaires);
+        mettreAJourInteractif(tousLesJoueurs, adversaires);
     }
     
-    // Version interactive de mettreAJour pour la phase de vol
-    private void mettreAJourInteractif(List<Joueur> cibles) {
+    /**
+     * Version interactive de la méthode mettreAJour, utilisée spécifiquement pour la phase de choix d'adversaire.
+     * Rend les cartes des adversaires ciblés "cliquables" et définit les actions de retour vers le contrôleur.
+     * 
+     * @param joueurs La liste de tous les joueurs à afficher.
+     * @param cibles La liste des joueurs cibles valides pour le vol.
+     */
+    private void mettreAJourInteractif(List<Joueur> joueurs, List<Joueur> cibles) {
         centerPanel.removeAll();
         
-        if (partie == null) return;
-        List<Joueur> joueurs = partie.getJoueurs();
         if (joueurs != null) {
             
             int rows = (joueurs.size() > 2) ? 2 : joueurs.size();
@@ -537,7 +592,6 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                 JPanel offerPanel = new JPanel(new FlowLayout());
                 offerPanel.setOpaque(false);
                 
-                // Si ce joueur est une cible valide, on rend ses cartes cliquables
                 boolean estCible = cibles.contains(j);
 
                 if (j.getOffre() != null) {
@@ -546,9 +600,8 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                         cg.setPreferredSize(new Dimension(60, 90));
                         if (estCible) {
                             cg.setSelectionnable(true, () -> {
-                                choixCartePreselectionne = 1; // Visible
-                                // Remettre le plateau en état normal (non cliquable) visuellement
-                                mettreAJour(); 
+                                choixCartePreselectionne = 1; 
+                                mettreAJour(joueurs); 
                                 clearActionPanel();
                                 controleur.setInputJoueur(j);
                             });
@@ -560,8 +613,7 @@ public class VueGraphique extends JFrame implements PropertyChangeListener {
                         cg.setPreferredSize(new Dimension(60, 90));
                         if (estCible) {
                             cg.setSelectionnable(true, () -> {
-                                choixCartePreselectionne = 2; // Cachée
-                                mettreAJour(); 
+                                mettreAJour(joueurs); 
                                 clearActionPanel();
                                 controleur.setInputJoueur(j);
                             });

@@ -6,39 +6,30 @@ import projestJest.Strategie.*;
 import java.util.List;
 
 /**
- * Représente un joueur virtuel.
- * Ses décisions sont déléguées à une stratégie (Pattern Strategy).
+ * Représente un joueur virtuel (Bot).
+ * Ses décisions (choix d'offre, choix de prise, choix de cible) sont entièrement déléguées
+ * à une stratégie configurable (Pattern Strategy).
  */
 public class JoueurVirtuel extends Joueur {
 
     /**
      * Constructeur pour un joueur virtuel.
-     * @param nom Nom du bot.
-     * @param strategie La stratégie utilisée par ce bot.
+     * 
+     * @param nom Le nom du bot.
+     * @param strategie La stratégie de jeu qu'appliquera ce bot.
      */
     public JoueurVirtuel(String nom, Strategie strategie) {
         super(nom);
         this.strategie = strategie;
     }
 
-    
-    /**
-     * Fait une offre en piochant deux cartes.
-     * @param c1 Première carte.
-     * @param c2 Deuxième carte.
-     * @param vue Interface utilisateur.
-     */
+    @Override
     public void faireOffre(Carte c1, Carte c2, InterfaceUtilisateur vue) {
         this.offre = new Offre(c1, c2);
         vue.afficherMessage(nom + " a fait son offre.");
     }
 
-    /**
-     * Choisit une carte dans l'offre d'un joueur.
-     * @param offre L'offre cible.
-     * @param vue Interface utilisateur.
-     * @return La carte choisie.
-     */
+    @Override
     public Carte choisirCarte(Offre offre, InterfaceUtilisateur vue) {
         boolean prendreVisible = strategie.choisirVisibleOuCachee(offre);
         Carte retiree = offre.prendre(prendreVisible);
@@ -48,12 +39,7 @@ public class JoueurVirtuel extends Joueur {
         return retiree;
     }
 
-    /**
-     * Choisit un joueur cible pour voler une carte.
-     * @param joueursValides Liste des joueurs cibles possibles.
-     * @param vue Interface utilisateur.
-     * @return Le joueur choisi.
-     */
+    @Override
     public Joueur choisirJoueurCible(List<Joueur> joueursValides, InterfaceUtilisateur vue) {
         return strategie.choisirOffre(joueursValides);
     }

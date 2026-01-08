@@ -11,18 +11,46 @@ import javax.imageio.ImageIO;
 import projestJest.Carte.Carte;
 
 /**
- * Composant graphique représentant une carte.
- * Affiche l'image de la carte ou son nom si image manquante.
+ * Composant graphique Swing représentant une carte de jeu à l'écran.
+ * Ce composant peut afficher soit l'image associée à la carte, soit le dos de la carte si elle est cachée.
+ * En l'absence d'image, le composant utilise un affichage de secours textuel.
+ * 
+ * Il gère également les interactions souris (clics, survol) si la carte est rendue sélectionnable.
  */
 public class CarteGraphique extends JPanel {
 
+    /**
+     * L'instance de la carte représentée par ce composant.
+     */
     private Carte carte;
+
+    /**
+     * Indique si la carte doit être affichée face cachée (dos visible) ou face visible.
+     */
     private boolean faceCachee;
+
+    /**
+     * Indique si le composant réagit aux clics de souris.
+     */
     private boolean selectionnable;
+
+    /**
+     * L'action à exécuter (callback) lorsque l'utilisateur clique sur ce composant, s'il est sélectionnable.
+     */
     private Runnable actionClick;
     
+    /**
+     * L'image chargée pour l'affichage de la carte. Peut être null si le fichier n'est pas trouvé.
+     */
     private BufferedImage image;
 
+    /**
+     * Constructeur du composant graphique Carte.
+     * Initialise les dimensions, le style et charge l'image correspondante.
+     * 
+     * @param carte L'objet Carte à afficher (peut être null si c'est un emplacement vide).
+     * @param faceCachee true pour afficher le dos de la carte, false pour afficher la face.
+     */
     public CarteGraphique(Carte carte, boolean faceCachee) {
         this.carte = carte;
         this.faceCachee = faceCachee;
@@ -35,7 +63,6 @@ public class CarteGraphique extends JPanel {
         
         chargerImage();
         
-        // Tooltip pour aider si l'image n'est pas claire
         if (!faceCachee && carte != null) {
             setToolTipText(carte.toString());
         }
@@ -60,27 +87,28 @@ public class CarteGraphique extends JPanel {
         });
     }
     
+    /**
+     * Charge l'image correspondant à la carte ou au dos de carte depuis le système de fichiers.
+     * Le chemin d'accès est construit dynamiquement en fonction de l'état (caché ou nom de la carte).
+     */
     private void chargerImage() {
         try {
             String path = "src/images/";
             if (faceCachee) {
                 path += "card_back.png";
             } else if (carte != null) {
-                // Tentative de chargement par nom de classe ou nom string
-                // Nettoyage basique du nom pour le fichier
                 String nomFichier = carte.toString().replaceAll("\\s+", "_") + ".png";
                 path += nomFichier;
             } else {
-                return; // Pas de carte, pas d'image
+                return; 
             }
             
             File f = new File(path);
             if (f.exists()) {
                 image = ImageIO.read(f);
             } else {
-                // Fallback: essayons de charger le dos si l'image specifique manque
                 if (!faceCachee) {
-                    // System.out.println("Image manquante: " + path);
+                    
                 }
             }
         } catch (IOException e) {
@@ -94,7 +122,6 @@ public class CarteGraphique extends JPanel {
         if (image != null) {
             g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
         } else {
-            // Dessin texte par défaut
             g.setColor(faceCachee ? Color.LIGHT_GRAY : Color.WHITE);
             g.fillRect(0, 0, getWidth(), getHeight());
             
@@ -106,11 +133,17 @@ public class CarteGraphique extends JPanel {
             int x = (getWidth() - fm.stringWidth(text)) / 2;
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             
-            // Si le texte est trop long, on peut le wrapper, mais ici on simplifie
             g.drawString(text, x, y);
         }
     }
     
+    /**
+     * Définit si ce composant est interactif (cliquable).
+     * Modifie le curseur de la souris pour indiquer l'interactivité.
+     * 
+     * @param b true pour rendre la carte sélectionnable, false sinon.
+     * @param action Le code (Runnable) à exécuter lors du clic.
+     */
     public void setSelectionnable(boolean b, Runnable action) {
         this.selectionnable = b;
         this.actionClick = action;

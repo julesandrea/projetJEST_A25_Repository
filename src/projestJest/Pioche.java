@@ -7,15 +7,21 @@ import java.util.List;
 import java.io.Serializable;
 
 /**
- * Représente la pioche du jeu. Gère la création, le mélange et la distribution des cartes.
+ * La classe Pioche représente le paquet de cartes utilisé dans le jeu.
+ * Elle assure la gestion du cycle de vie des cartes avant leur distribution : création, mélange et tirage.
+ * 
+ * Cette classe supporte les extensions via l'ajout de cartes spéciales et est sérialisable pour la sauvegarde.
  */
 public class Pioche implements Serializable {
 
+    /**
+     * Liste ordonnée des cartes présentes dans la pioche.
+     */
     private List<Carte> cartes;
 
     /**
-     * Constructeur de la Pioche. 
-     * Initialise les cartes, ajoute le joker et mélange le tout.
+     * Constructeur de la Pioche.
+     * Génère l'ensemble des cartes de base (Suites + Joker) et les mélange immédiatement.
      */
     public Pioche() {
         cartes = new ArrayList<>();
@@ -24,7 +30,9 @@ public class Pioche implements Serializable {
     }
 
     /**
-     * Génère les 16 cartes de suite et le Joker.
+     * Instancie les 17 cartes du jeu de base :
+     * - 4 suites (Coeur, Carreau, Trèfle, Pique) de 4 valeurs (As, 2, 3, 4).
+     * - 1 Joker (Bestiole).
      */
     private void genererCartes() {
         for (SuiteCarte suite : SuiteCarte.values()) {
@@ -36,7 +44,8 @@ public class Pioche implements Serializable {
     }
     
     /**
-     * Ajoute les cartes d'extension à la pioche.
+     * Intègre les cartes de l'extension au paquet actuel et mélange de nouveau la pioche.
+     * Ajoute le Mage et le Coeur Brisant (si implémenté comme tel, ici via des classes spécifiques).
      */
     public void ajouterExtensions() {
         cartes.add(new CarteMage());
@@ -45,14 +54,15 @@ public class Pioche implements Serializable {
     }
 
     /**
-     * Mélange les cartes de la pioche.
+     * Mélange aléatoirement l'ordre des cartes dans la pioche.
      */
     public void melanger() {
         Collections.shuffle(cartes);
     }
 
     /**
-     * Pioche une carte au sommet de la pile.
+     * Retire et retourne la carte située au sommet de la pioche.
+     * 
      * @return La carte piochée, ou null si la pioche est vide.
      */
     public Carte piocher() {
@@ -61,9 +71,10 @@ public class Pioche implements Serializable {
     }
 
     /**
-     * Pioche le nombre spécifié de trophées.
-     * @param nombre Le nombre de trophées à piocher.
-     * @return Une liste contenant les cartes trophées piochées.
+     * Pioche plusieurs cartes consécutivement, destinées à être utilisées comme trophées.
+     * 
+     * @param nombre Le nombre de cartes à piocher.
+     * @return Une liste contenant les cartes piochées.
      */
     public List<Carte> piocherTrophees(int nombre) {
         List<Carte> troph = new ArrayList<>();
@@ -75,14 +86,18 @@ public class Pioche implements Serializable {
     }
 
     /**
-     * @return Le nombre de cartes restantes dans la pioche.
+     * Retourne le nombre de cartes restant actuellement dans la pioche.
+     * 
+     * @return La taille de la pioche.
      */
     public int taille() {
         return cartes.size();
     }
 
     /**
-     * @return Vrai si la pioche est vide, faux sinon.
+     * Vérifie si la pioche est vide.
+     * 
+     * @return true si aucune carte n'est disponible, false sinon.
      */
     public boolean estVide() {
         return cartes.isEmpty();

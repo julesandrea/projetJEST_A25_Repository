@@ -7,29 +7,31 @@ import java.util.Scanner;
 import java.io.Serializable;
 
 /**
- * Implémentation de la vue en console.
- * Gère les affichages texte et la saisie utilisateur via Scanner.
+ * La classe VueConsole fournit une implémentation textuelle de l'interface utilisateur du jeu JEST.
+ * Elle utilise la sortie standard (System.out) pour l'affichage des informations et l'entrée standard (System.in)
+ * pour recueillir les choix des utilisateurs via un Scanner.
+ * 
+ * Cette vue est conçue pour fonctionner en ligne de commande.
  */
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-/**
- * Implémentation de la vue en console.
- * Gère les affichages texte et la saisie utilisateur via Scanner.
- */
-public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyChangeListener {
+public class VueConsole implements InterfaceUtilisateur, Serializable {
     
+    /**
+     * Scanner utilisé pour lire les entrées de l'utilisateur depuis la console.
+     * Marqué transient car le scanner n'est pas sérialisable.
+     */
     private transient Scanner scanner;
 
     /**
-     * Constructeur de VueConsole.
+     * Constructeur par défaut de la VueConsole.
+     * Initialise le scanner sur l'entrée standard.
      */
     public VueConsole() {
         this.scanner = new Scanner(System.in);
     }
     
     /**
-     * Initialise le scanner (utile après sérialisation).
+     * Réinitialise le scanner.
+     * Cette méthode doit être appelée après la désérialisation de l'objet, car le scanner (transient) sera null.
      */
     public void initScanner() {
         if (this.scanner == null) {
@@ -37,24 +39,24 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         }
     }
 
-    
+    @Override
     public void afficherMessage(String msg) {
         System.out.println(msg);
     }
 
-    
+    @Override
     public void afficherTrophees(List<Carte> trophees) {
         System.out.println("\nTrophées : " + trophees);
     }
 
-    
+    @Override
     public void afficherTour(int numTour) {
         System.out.println("\n----------------------------");
         System.out.println("      TOUR " + numTour);
         System.out.println("----------------------------");
     }
 
-    
+    @Override
     public void afficherOffres(List<Joueur> joueurs) {
         System.out.println("\nOffres actuelles :");
         for (Joueur j : joueurs) {
@@ -62,12 +64,12 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         }
     }
 
-    
+    @Override
     public void afficherFinTour(int numTour) {
         System.out.println("\nFin du tour " + numTour + ".");
     }
 
-    
+    @Override
     public void afficherResultats(List<Joueur> joueurs, Joueur vainqueur, int scoreMax) {
         System.out.println("\n=== Scores finaux ===");
         for (Joueur j : joueurs) {
@@ -81,7 +83,7 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         }
     }
 
-    
+    @Override
     public int demanderChoixInt(String question, int min, int max) {
         int choix;
         do {
@@ -96,13 +98,13 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         return choix;
     }
 
-    
+    @Override
     public String demanderChaine(String question) {
         System.out.print(question);
         return scanner.nextLine();
     }
 
-    
+    @Override
     public int demanderChoixOffre(Joueur j, Carte c1, Carte c2) {
         System.out.println("\n" + j.getNom() + ", voici vos cartes : ");
         System.out.println("1 : " + c1);
@@ -110,7 +112,7 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         return demanderChoixInt("Choisissez celle à mettre VISIBLE", 1, 2);
     }
 
-    
+    @Override
     public int demanderChoixPrise(Joueur j, Offre o) {
         System.out.println("\n" + j.getNom() + ", offre sélectionnée : " + o);
         System.out.println("1 : Prendre la carte visible");
@@ -118,7 +120,7 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         return demanderChoixInt("Votre choix", 1, 2);
     }
 
-    
+    @Override
     public Joueur demanderChoixAdversaire(Joueur j, List<Joueur> adversaires) {
         System.out.println("\n" + j.getNom() + ", choisissez un joueur chez qui prendre une carte :");
         for (int i = 0; i < adversaires.size(); i++) {
@@ -130,29 +132,5 @@ public class VueConsole implements InterfaceUtilisateur, Serializable, PropertyC
         }
         int choix = demanderChoixInt("Numéro du joueur cible", 1, adversaires.size());
         return adversaires.get(choix - 1);
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        switch (evt.getPropertyName()) {
-            case "message":
-                afficherMessage((String) evt.getNewValue());
-                break;
-            case "trophees":
-                afficherTrophees((List<Carte>) evt.getNewValue());
-                break;
-            case "tour":
-                afficherTour((Integer) evt.getNewValue());
-                break;
-            case "offres":
-                afficherOffres((List<Joueur>) evt.getNewValue());
-                break;
-            case "fin_tour":
-                afficherFinTour((Integer) evt.getNewValue());
-                break;
-            case "resultats":
-                afficherResultats((List<Joueur>) evt.getNewValue(), null, 0); 
-                break;
-        }
     }
 }
