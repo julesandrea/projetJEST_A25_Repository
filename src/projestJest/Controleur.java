@@ -90,7 +90,6 @@ public class Controleur implements InterfaceUtilisateur, PropertyChangeListener 
         this.partie.addPropertyChangeListener(this);
         
         Thread consoleThread = new Thread(this::consoleLoop);
-        consoleThread.setDaemon(true);
         consoleThread.start();
         
         SwingUtilities.invokeLater(() -> {
