@@ -189,12 +189,12 @@ public class VueGraphique extends JFrame {
     }
 
     /**
-     * Affiche un message d'information dans la console (log GUI) et ouvre une boîte de dialogue si nécessaire.
+     * Affiche un message d'information dans la console (log Interface) et ouvre une boîte de dialogue si nécessaire.
      * 
      * @param msg Le message à afficher.
      */
     public void afficherMessage(String msg) {
-        System.out.println("[GUI Message] " + msg);
+        System.out.println("[Interface Message] " + msg);
         
         if (msg.contains("vainqueur")) {
             JOptionPane.showMessageDialog(this, msg, "Fin de Partie", JOptionPane.INFORMATION_MESSAGE);

@@ -64,6 +64,11 @@ public class Partie implements Serializable {
     private List<Carte> trophees;
 
     /**
+     * Copie de la liste des trophées initiaux pour l'affichage des résultats.
+     */
+    private List<Carte> tropheesInitial;
+
+    /**
      * La variante de règles appliquée pour cette partie.
      */
     private Variante variante;
@@ -95,6 +100,12 @@ public class Partie implements Serializable {
      * @return La liste modifiable des trophées en jeu.
      */
     public List<Carte> getTrophees() { return trophees; }
+    
+    /**
+     * Retourne la liste des trophées initiaux.
+     * @return La liste des trophées tels qu'ils étaient au début de la partie.
+     */
+    public List<Carte> getTropheesInitial() { return tropheesInitial; }
 
     /**
      * Retourne le numéro du tour.
@@ -197,6 +208,7 @@ public class Partie implements Serializable {
         int nbTrophees = (nbJoueurs == 3) ? 2 : 1; 
         
         trophees = pioche.piocherTrophees(nbTrophees);
+        tropheesInitial = new ArrayList<>(trophees);
         
         diffuseur.firePropertyChange(PROP_TROPHEES, null, trophees);
 
@@ -249,6 +261,14 @@ public class Partie implements Serializable {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("sauvegarde.ser"))) {
             Partie p = (Partie) ois.readObject();
             p.initVue();
+            
+            // Compatibilité avec anciennes sauvegardes : on initialise tropheesInitial si absent
+            if (p.getTropheesInitial() == null && p.getTrophees() != null) {
+                // On utilise reflection ou on accède au champ si on était dans la classe, mais ici on est statique dans la classe Partie
+                // Donc on peut modifier p.tropheesInitial directement
+                p.tropheesInitial = new ArrayList<>(p.trophees);
+            }
+            
             return p;
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Erreur chargement : " + e.getMessage());

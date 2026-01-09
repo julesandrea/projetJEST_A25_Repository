@@ -471,8 +471,18 @@ public class Controleur implements InterfaceUtilisateur, PropertyChangeListener 
                 break;
             case Partie.PROP_RESULTATS:
                 List<Joueur> jList = (List<Joueur>) evt.getNewValue();
-                vueConsole.afficherResultats(jList, null, 0); 
-                vueGraphique.afficherResultats(jList, partie.getTrophees());
+                
+                Joueur winner = null;
+                int maxScore = Integer.MIN_VALUE;
+                for (Joueur j : jList) {
+                    if (j.getScore() > maxScore) {
+                        maxScore = j.getScore();
+                        winner = j;
+                    }
+                }
+                
+                vueConsole.afficherResultats(jList, winner, maxScore); 
+                vueGraphique.afficherResultats(jList, partie.getTropheesInitial());
                 break;
         }
     }
